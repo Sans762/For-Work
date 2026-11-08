@@ -167,15 +167,16 @@
     if (!hasAccess(true)) throw new Error("กรุณายืนยันสิทธิ์แก้ไข Google Sheets ก่อนอัปโหลด");
     if (!Array.isArray(products) || !products.length) throw new Error("ยังไม่มีสินค้าในเว็บให้ส่งไป Google Sheets");
     if (products.length > 1499) throw new Error("รองรับสินค้าได้สูงสุด 1,499 รายการต่อชุด");
-    /* Disable new stock before replacing rows; if a request fails, old Inventory remains active. */
+    /* The simple Stock_Input layout is: Name, Qty, Price, Brand, Category, SKU, SnapshotDate. Disable the new source until the replacement succeeds. */
     await writeValues(sheetId, "Start_Here!B5", [[false]], "USER_ENTERED");
     await request(apiURL(sheetId, "/values:batchClear"), {
       method: "POST",
       body: JSON.stringify({ ranges: ["Stock_Input!A2:G1500"] })
     }, true);
     const rows = products.map(p => [
-      text(p.sku), text(p.name), Math.max(0, Math.floor(number(p.qty))),
-      Math.max(0,number(p.price)),text(p.brand),text(p.category),text(snapshotDate || p.snapshotDate)
+      text(p.name), Math.max(0, Math.floor(number(p.qty))),
+      Math.max(0,number(p.price)), text(p.brand),text(p.category),
+      text(p.sku),text(snapshotDate || p.snapshotDate)
     ]);
     await writeValues(sheetId, "Stock_Input!A2:G" + (rows.length + 1), rows, "RAW");
     if (snapshotDate) await writeValues(sheetId, "Start_Here!B6", [[snapshotDate]], "RAW");
