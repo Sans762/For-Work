@@ -88,10 +88,22 @@
  .start-main small{font-size:10px}
 }
 @media(max-width:380px){.more-menu{grid-template-columns:1fr}}
-</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.5 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
+
+.inventory-warning{margin:0 0 15px;padding:14px;border:1px solid #e8ca70;background:#fff4d7;color:#674f19;border-radius:14px;font-size:12px;line-height:1.6}
+.inventory-warning b{display:block;font-size:14px}.inventory-warning .quick-actions{margin:10px 0}
+.inventory-ok{margin-bottom:12px;padding:10px 12px;border-radius:11px;background:#ecf6f0;color:#4d6e5a;font-size:11px}
+.category-tabs{display:flex;gap:8px;overflow-x:auto;padding:7px 1px 12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.category-tabs button{flex:0 0 auto;min-height:46px;white-space:nowrap;border:1px solid #dce2e7;border-radius:12px;background:white;padding:9px 13px;font-weight:800;color:#3f4d58}
+.category-tabs button.on{background:#ffecb2;border-color:#deb941}
+.brand-list-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin:8px 0 12px}
+.brand-list-head b{font-size:18px}.brand-list-head span{font-size:11px;color:#69757f}
+.brand-sheet-link{display:block;font-size:11px;font-weight:750;padding:8px 12px;background:#f7f8fa;border-top:1px solid #eceef0;text-decoration:none;color:#54626c}
+@media(max-width:720px){.category-tabs{margin-right:-13px;padding-right:13px}.inventory-warning .btn{min-height:45px}}
+</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.6 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
 <script src="./xlsx-reader.js"></script>
 <script src="./photo-reader.js"></script>
 <script src="./catalog-ui.js"></script>
+<script src="./brand-browser.js"></script>
 <script src="./specs-ui.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="./google-sync.js"></script>
@@ -104,7 +116,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}
 var data=clone(defaults);try{var parsed=JSON.parse(localStorage.getItem(K)||"{}");if(parsed&&typeof parsed==="object")data=Object.assign(data,parsed)}catch(e){}
 var fromQuery=new URLSearchParams(location.search).get("sheet");if(fromQuery&&/^[a-zA-Z0-9_-]{20,100}$/.test(fromQuery)){data.sheetId=fromQuery;try{localStorage.setItem(K,JSON.stringify(data));history.replaceState({}, "",location.pathname+location.hash)}catch(e){}};
 var state={page:"home",type:"ทั้งหมด",brand:"ทั้งหมด",search:"",selected:"",filter:"all",sort:"price_asc",minPrice:"",maxPrice:"",priceRange:"",showCount:100};
-state.brandFormOpen=false;state.productFormOpen=false;state.productBrand="";state.productCategory="Smartphone";
+state.brandFormOpen=false;state.productFormOpen=false;state.productBrand="";state.productCategory="Smartphone";state.catalogType="Smartphone";state.brandSearch="";state.brandAdmin=false;
 var photoRows=Array.isArray(data.photoReport?.rows)?clone(data.photoReport.rows):[];
 var photoPreviewUrl="",photoRawText="",photoBusy=false,photoMessage="",photoWarnings=[],photoChanged=false;
 var photoDate=data.photoReport?.reportDate||new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -114,14 +126,14 @@ var PHOTO_EXTRA=[["lastMonth","Last month (฿)"],["lastYear","Last year (฿)"]
 var $=function(s){return document.querySelector(s)},fmt=function(n){return Number(n||0).toLocaleString("th-TH",{maximumFractionDigits:0})},safe=function(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
 function persist(){try{localStorage.setItem(K,JSON.stringify(data))}catch(e){alert("ไม่สามารถบันทึกข้อมูลในเบราว์เซอร์")}}
 function toast(m){var t=$("#toast");t.textContent=m;t.classList.remove("hide");clearTimeout(toast.timer);toast.timer=setTimeout(function(){t.classList.add("hide")},3000)}
-function nav(){var html=tabs.map(function(x){return '<button data-page="'+x[0]+'" class="'+(x[0]===state.page?"on":"")+'">'+x[1]+' '+x[2]+"</button>"}).join("");$("#side").innerHTML=html;var mobileTabs=[["home","⌂","หน้าแรก"],["stock","▦","สินค้า"],["brands","◈","แบรนด์"],["menu","☰","เมนู"]];$("#bottom").innerHTML=mobileTabs.map(function(x){var active=x[0]===state.page||(x[0]==="menu"&&["quote","kpi","photo","settings","spec"].includes(state.page));return '<button data-page="'+x[0]+'" class="'+(active?"on":"")+'"><span>'+x[1]+"</span>"+x[2]+"</button>"}).join("");$("#topTitle").textContent=(tabs.find(function(x){return x[0]===state.page})||["","","สเปกสินค้า"])[2];$("#dataState").textContent=data.syncSource==="google"?"Google • "+data.products.length+" รายการ":data.products.length?"ในเครื่อง • "+data.products.length+" รายการ":"ยังไม่มีสต็อก"}
+function nav(){var html=tabs.map(function(x){return '<button data-page="'+x[0]+'" class="'+(x[0]===state.page?"on":"")+'">'+x[1]+' '+x[2]+"</button>"}).join("");$("#side").innerHTML=html;var mobileTabs=[["home","⌂","หน้าแรก"],["stock","▦","สินค้า"],["brands","◈","แบรนด์"],["menu","☰","เมนู"]];$("#bottom").innerHTML=mobileTabs.map(function(x){var active=x[0]===state.page||(x[0]==="menu"&&["quote","kpi","photo","settings","spec"].includes(state.page));return '<button data-page="'+x[0]+'" class="'+(active?"on":"")+'"><span>'+x[1]+"</span>"+x[2]+"</button>"}).join("");$("#topTitle").textContent=(tabs.find(function(x){return x[0]===state.page})||["","","สเปกสินค้า"])[2];$("#dataState").textContent=isInventoryIncomplete()?"⚠ ในเครื่อง "+data.products.length+" (ไม่ครบ)":data.products.length?"ในเครื่อง • "+data.products.length+" รายการ":"ยังไม่มีสต็อก"}
 function title(a,b,c){return '<div class="head"><div><div class="eyebrow">WORKSPACE / SALES</div><h2 class="h">'+a+'</h2><p class="small">'+b+'</p></div>'+(c?'<span class="tag">'+c+"</span>":"")+"</div>"}
 function stockQuickLinks(){
  if(!data.sheetId)return '<div class="notice" style="margin:12px 0">ต้องบันทึกลิงก์ Google Sheets ในเมนู นำเข้า ก่อน จึงจะใช้ปุ่มแก้สต็อกได้</div>';
  var base="https://docs.google.com/spreadsheets/d/"+encodeURIComponent(data.sheetId)+"/edit#gid=";
  return '<div class="card" style="margin:12px 0;background:#fff9e8;border-color:#eedb9f"><div class="row" style="justify-content:space-between;align-items:center"><b>✎ แก้สต็อกได้ง่ายใน Google Sheets</b><span class="small">แก้จำนวนด้วย SKU + จำนวนใหม่</span></div><div class="quick-actions" style="margin-top:11px"><a class="btn dark" href="'+base+'501503" target="_blank" rel="noopener">🔎 ค้นหา SKU</a><a class="btn yellowbtn" href="'+base+'501501" target="_blank" rel="noopener">✏ แก้จำนวนสินค้า</a><a class="btn" href="'+base+'501302" target="_blank" rel="noopener">＋ เพิ่มสินค้า</a><a class="btn" href="'+base+'501700" target="_blank" rel="noopener">◈ แยกแบรนด์</a><a class="btn" href="'+base+'501801" target="_blank" rel="noopener">＋ เพิ่มแบรนด์</a><a class="btn" href="'+base+'501502" target="_blank" rel="noopener">▦ สรุปแบรนด์</a><a class="btn" href="'+base+'501601" target="_blank" rel="noopener">◈ เพิ่มสเปกเครื่อง</a></div><div class="small" style="margin-top:8px">แก้ในชีตแล้วกด ⟳ ซิงก์บนเว็บเพื่อดึงยอดใหม่ (ต้องเชื่อม Google OAuth)</div></div>';
 }
-function home(){var all=data.products.reduce(function(n,p){return n+p.qty},0),goal=data.target*.7,rem=Math.max(0,goal-data.sales),diff=(function(){var t=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()),v={};t.forEach(function(x){v[x.type]=x.value});return (Date.UTC(2026,10,30)-Date.UTC(+v.year,+v.month-1,+v.day))/86400000})(),days=Math.max(0,Math.floor(diff)+1),val=data.products.reduce(function(n,p){return n+p.qty*p.price},0);return title("For Work","เริ่มจากเลือกสิ่งที่ต้องการใช้งาน","")+
+function home(){var all=data.products.reduce(function(n,p){return n+p.qty},0),goal=data.target*.7,rem=Math.max(0,goal-data.sales),diff=(function(){var t=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()),v={};t.forEach(function(x){v[x.type]=x.value});return (Date.UTC(2026,10,30)-Date.UTC(+v.year,+v.month-1,+v.day))/86400000})(),days=Math.max(0,Math.floor(diff)+1),val=data.products.reduce(function(n,p){return n+p.qty*p.price},0);return title("For Work","เริ่มจากเลือกสิ่งที่ต้องการใช้งาน","")+freshnessBanner()+
  '<div class="start-actions"><button class="start-main" data-page="brands"><span>📱</span><b>เลือกแบรนด์</b><small>มือถือ / โน้ตบุ๊ก</small></button><button class="start-main" data-page="stock"><span>🔎</span><b>ค้นหาสินค้า</b><small>ราคา / สต็อก / สเปก</small></button><button class="start-main" data-page="quote"><span>▤</span><b>คิดราคา</b><small>ส่วนลด / ประกัน</small></button></div>'+'<div class="syncbox" style="margin-bottom:14px"><div class="row"><b>Google Sheets</b><span class="small">'+safe(data.syncSource==="google"?"ซิงก์ล่าสุด "+data.updated:"ยังไม่เชื่อมบัญชี Google")+'</span><button class="btn" id="googleSync">⟳ ดึงสต็อก</button><button class="btn" data-page="settings">ตั้งค่า</button></div>'+(data.salesDate?'<div class="small">ยอดขายจากชีตเป็น snapshot ณ '+safe(data.salesDate)+' ไม่ใช่ยอด POS สด</div>':'')+'</div>'+(data.products.length?'':'<div class="card" style="background:#fff9e9;border-color:#f3dd90;margin-bottom:14px"><h3 class="section">เริ่มต้นด้วยการนำเข้าสต็อก</h3><p class="small">Google Sheets เป็นส่วนตัว จึงยังไม่มีข้อมูลในเครื่องนี้</p><button class="btn dark" data-page="settings">＋ นำเข้า Excel จาก Google Sheets</button></div>')+photoSavedCard()+'<div class="cards"><div class="card yellow"><div class="label">ยอดขายเดือนนี้</div><div class="value">'+fmt(data.sales)+' ฿</div><div class="small">บันทึกเองในหน้า ตั้งค่า</div></div><div class="card"><div class="label">เป้าหมาย 70%</div><div class="value">'+fmt(goal)+' ฿</div></div><div class="card"><div class="label">ยอดยังขาด</div><div class="value red">'+fmt(rem)+' ฿</div></div><div class="card"><div class="label">เป้าขั้นต่ำต่อวัน</div><div class="value">'+(days?fmt(Math.ceil(rem/days)):"—")+' ฿</div><div class="small">'+days+' วัน ถึงสิ้นพฤศจิกายน</div></div></div><div class="two"><section class="card"><h3 class="section">ความคืบหน้า</h3><div class="row" style="justify-content:space-between"><b>'+fmt(data.sales)+' / '+fmt(data.target)+' ฿</b><b>'+ (data.target?(data.sales/data.target*100).toFixed(1):"0.0")+'%</b></div><div class="bar" style="margin:12px 0"><div class="fill" style="width:'+Math.min(100,data.target?data.sales/data.target*100:0)+'%"></div></div><div class="notice">ข้อมูลยอดขายไม่ได้ดึงจาก POS ร้านอัตโนมัติ และไม่บวกยอดจากรายการทดลองเข้ายอดจริง</div></section><section class="card"><h3 class="section">สต็อกตามไฟล์ล่าสุด</h3><div class="value">'+fmt(all)+' หน่วย</div><div class="small">ราคาตั้งรวม '+fmt(val)+' ฿</div><div class="report" style="margin-top:15px">'+["Samsung","OPPO","vivo","Notebook"].map(function(b){return '<div><div class="minihead">'+b+'</div><div class="stat">'+fmt(data.products.filter(function(p){return p.brand===b}).reduce(function(s,p){return s+p.qty},0))+' หน่วย</div></div>'}).join("")+'</div><button class="btn dark full" data-page="stock" style="margin-top:15px">ดูสินค้า →</button></section></div>'}
 
 
@@ -195,7 +207,7 @@ function saveNewBrandProduct(){
   }).catch(googleError);
  }catch(e){toast(String(e.message||e))}
 }
-function brandsPage(){
+function brandManagementPage(){
  var defs=[{category:"Smartphone",heading:"📱 มือถือ"},{category:"Notebook",heading:"💻 โน้ตบุ๊ก"}];
  var hasStock=!!(data.products&&data.products.length);
  var h=title("แบรนด์และรุ่น","เลือกแบรนด์เพื่อค้นหาสินค้า หรือเพิ่มแบรนด์/รุ่นใหม่ได้เอง","มือถือ + โน้ตบุ๊ก");
@@ -245,9 +257,25 @@ function brandsPage(){
  h+='<div class="small">รายชื่อหลักมาจาก Stock_View / Brand_Custom หลังซิงก์ · ไม่ต้องกรอกแบรนด์ที่มีในชีตซ้ำ</div>';
  return h;
 }
+
+function isInventoryIncomplete(){
+ var list=Array.isArray(data.products)?data.products:[];
+ return !!data.sheetId&&(list.length<500||new Set(list.map(p=>p.category)).size<8);
+}
+function freshnessBanner(){
+ if(!isInventoryIncomplete())return '<div class="inventory-ok">สต็อกในเครื่อง '+fmt(data.products.length)+' รายการ'+(data.updated?' · ซิงก์ '+safe(data.updated):'')+'</div>';
+ var n=data.products.length,link=data.sheetId?'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(data.sheetId)+'/edit':'';
+ return '<div class="inventory-warning"><b>⚠ ข้อมูลในมือถือยังไม่ครบ</b><div>มีข้อมูลในเครื่อง '+fmt(n)+' รายการ ไม่ใช่สต็อกครบจาก Google Sheets จึงเห็นสินค้าและยอดบางแบรนด์ไม่ครบ</div><div class="quick-actions"><button class="btn dark" id="googleSync">⟳ ดึงสต็อกล่าสุด</button>'+(link?'<a class="btn" target="_blank" rel="noopener" href="'+link+'">เปิด Google Sheets</a>':'')+'</div><div class="small">หาก Google ยังติด 403 ให้ดาวน์โหลด Excel จากชีต แล้วนำเข้าทาง เมนู → เชื่อมข้อมูล</div></div>';
+}
+function brandsPage(){
+ if(state.brandAdmin)return title("จัดการสินค้า","เพิ่มเฉพาะแบรนด์หรือรุ่นที่ไม่มีในชีต")+'<button class="btn" id="closeBrandAdmin" style="margin-bottom:12px">← กลับไปเลือกแบรนด์</button>'+brandManagementPage();
+ return title("แบรนด์และอุปกรณ์","เลือกหมวดอุปกรณ์ แล้วแตะชื่อแบรนด์","รายชื่อจากชีต")+freshnessBanner()+
+ (window.ForWorkBrandBrowser?window.ForWorkBrandBrowser.render(data,Object.assign({},state,{inventoryIncomplete:isInventoryIncomplete()}),safe,fmt):'<div class="notice">โปรดรีเฟรชเว็บเพื่อโหลดรายชื่อแบรนด์</div>')+
+ '<details class="brand-admin"><summary>เพิ่มรุ่น / แบรนด์ใหม่ (ตัวเลือกเพิ่มเติม)</summary><button class="btn" id="openBrandAdmin" style="margin-top:10px">เปิดหน้าจัดการ</button></details>';
+}
 function products(){
- var types=["ทั้งหมด"].concat(Array.from(new Set(data.products.map(function(p){return p.category}).filter(Boolean))).sort());
- var brands=["ทั้งหมด"].concat(Array.from(new Set(data.products.filter(function(p){return state.type==="ทั้งหมด"||p.category===state.type}).map(function(p){return p.brand}).filter(Boolean))).sort());
+ var types=["ทั้งหมด"].concat(Array.from(new Set([...(window.ForWorkCatalog?.allTypes()||[]),...data.products.map(p=>p.category).filter(Boolean)])));
+ var brands=["ทั้งหมด"].concat(Array.from(new Set([...(window.ForWorkCatalog?.brandsFor(state.type)||[]),...data.products.filter(p=>state.type==="ทั้งหมด"||p.category===state.type).map(p=>p.brand).filter(Boolean)])).sort((a,b)=>a.localeCompare(b,"th")));
  var presets=[["ทุกช่วง",":"],["ไม่เกิน 5,000",":5000"],["5,001–10,000","5001:10000"],["10,001–20,000","10001:20000"],["20,001–30,000","20001:30000"],["30,001 ขึ้นไป","30001:"]];
  var min=state.minPrice===""?0:Math.max(0,Number(state.minPrice)||0);
  var max=state.maxPrice===""?Infinity:Math.max(0,Number(state.maxPrice)||0);
@@ -274,14 +302,15 @@ function products(){
  });
  var totalQty=selected.reduce(function(t,p){return t+(Number(p.qty)||0)},0);
  var count=Math.min(selected.length,state.showCount||100);
- var typeLabel=function(c){return ({"ทั้งหมด":"ทั้งหมด","Smartphone":"มือถือ","Notebook":"โน้ตบุ๊ก","Gadget":"แกดเจ็ต","Tablet":"แท็บเล็ต","Accessory":"อุปกรณ์เสริม"})[c]||c};
+ var typeLabel=function(c){return c==="ทั้งหมด"?c:(window.ForWorkBrandBrowser?.labels[c]||c)};
  var hasCustom=state.type!=="ทั้งหมด"||state.brand!=="ทั้งหมด"||state.search||state.filter!=="all"||state.minPrice!==""||state.maxPrice!==""||state.sort!=="price_asc";
- var h=title("รายการสินค้า","ค้นหาและกรองสต็อกตามข้อมูลล่าสุด — ราคาเรียงจากน้อยไปมากเป็นค่าเริ่มต้น",fmt(selected.length)+" รุ่น");
+ var h=title("รายการสินค้า","ค้นหารุ่นและกรองตามประเภทอุปกรณ์และแบรนด์",fmt(selected.length)+" รุ่น");
+ h+=freshnessBanner();
  if(["Smartphone","Notebook"].includes(state.type)&&state.brand!=="ทั้งหมด"){
   h+='<div class="catalog-action"><b>'+safe(state.brand)+' · '+safe(state.type==="Smartphone"?"มือถือ":"โน้ตบุ๊ก")+'</b><button class="btn yellowbtn" data-add-product-brand="'+safe(state.brand)+'" data-add-product-category="'+safe(state.type)+'">＋ เพิ่มรุ่น</button></div>';
  }
  h+='<details class="more-stock-tools"><summary>เครื่องมือแก้สต็อกใน Google Sheets</summary>'+stockQuickLinks()+'</details>';
- h+=(window.ForWorkCatalog?.render(data.products,state,safe,fmt,false)||"");
+
  h+='<section class="stocktools"><div class="stockfilter-title"><span>ตัวกรองสินค้า</span><button class="btn" id="clearFilters" '+(hasCustom?'':'disabled')+' style="padding:7px 11px;font-size:11px">ล้างตัวกรอง</button></div>';
  h+='<input type="search" class="search" id="search" placeholder="ค้นหารุ่น, สี, แบรนด์ หรือ SKU" value="'+safe(state.search)+'" aria-label="ค้นหาสินค้า">';
  h+='<div class="filters" style="margin-top:11px">'+types.map(function(c){return '<button class="chip '+(state.type===c?"on":"")+'" data-type="'+safe(c)+'">'+safe(typeLabel(c))+'</button>'}).join("")+'</div>';
@@ -550,7 +579,10 @@ setInterval(function(){
  if(document.hidden||!data.sheetId||!window.ForWorkGoogle?.hasAccess(false))return;
  syncFromGoogle({toast:false}).catch(function(err){console.warn("Google Sheets background sync stopped:",err)});
 },300000);
-document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.id==="toggleBrandForm"){state.brandFormOpen=!state.brandFormOpen;state.productFormOpen=false;render();return}
+document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.id==="openBrandAdmin"){state.brandAdmin=true;state.brandFormOpen=false;state.productFormOpen=false;render();return}
+if(el.id==="closeBrandAdmin"){state.brandAdmin=false;render();return}
+if(el.dataset.catalogType){state.catalogType=el.dataset.catalogType;state.brandSearch="";render();return}
+if(el.id==="toggleBrandForm"){state.brandFormOpen=!state.brandFormOpen;state.productFormOpen=false;render();return}
 if(el.id==="toggleProductForm"){state.productFormOpen=!state.productFormOpen;state.brandFormOpen=false;render();return}
 if(el.id==="saveBrandLocal"){registerBrand(false);return}
 if(el.id==="saveBrandGoogle"){registerBrand(true);return}
@@ -571,7 +603,8 @@ if(el.id==="clearFilters"){state.type="ทั้งหมด";state.brand="ท�
 if(el.id==="showMoreProducts"){state.showCount+=100;render();return}if(el.dataset.specId){state.selected=el.dataset.specId;state.page="spec";render();window.scrollTo(0,0);return}
 if(el.id==="copySpecs"){var product=data.products.find(function(p){return p.id===state.selected});if(!product||!window.ForWorkSpecs)return;navigator.clipboard.writeText(window.ForWorkSpecs.getText(product,data.specs||{})).then(function(){toast("คัดลอกสเปกแล้ว")},function(){toast("คัดลอกไม่สำเร็จ")});return}
 if(el.dataset.pick){state.selected=el.dataset.pick;go("quote");return}if(el.id==="copyGoogleOrigin"){navigator.clipboard.writeText("https://sans762.github.io").then(function(){toast("คัดลอก Origin แล้ว")},function(){toast("คัดลอกไม่ได้ กรุณาคัดลอก https://sans762.github.io เอง")});return}if(el.id==="googleCheck"){checkGoogleSetup();return}if(el.id==="googleConnect"){googleConnectClick();return}if(el.id==="googleSync"||el.id==="quickSync"){if(!window.ForWorkGoogle?.hasAccess(false)){if(state.page!=="settings")go("settings");googleConnectClick();return}syncFromGoogle().catch(googleError);return}if(el.id==="saveOAuthClient"){try{if(!window.ForWorkGoogle)throw Error("Google ยังไม่พร้อม");window.ForWorkGoogle.setClientId($("#oauthClientId").value);toast("บันทึก Client ID แล้ว");render()}catch(e){googleError(e)}return}if(el.id==="googleUpload"){googleUploadClick();return}if(el.id==="saveSheetLink"){var v=$("#sheetLink").value.trim();var match=v.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/)||v.match(/^([A-Za-z0-9_-]{20,100})$/);if(!match){toast("ลิงก์ชีตไม่ถูกต้อง");return}data.sheetId=match[1];persist();render();toast("บันทึกลิงก์ Google Sheets แล้ว")}if(el.id==="chooseFile"){var fileInput=$("#file");if(fileInput)fileInput.click()}if(el.id==="saveTarget"){data.target=Math.max(0,Number($("#goal").value||0));data.sales=Math.max(0,Number($("#sold").value||0));persist();go("home");toast("บันทึกแล้ว")}if(el.id==="demo"){data.products=[{id:"demo-1",sku:"",brand:"Samsung",category:"Smartphone",name:"มือถือรุ่นตัวอย่าง 128GB",qty:3,price:6990},{id:"demo-2",sku:"",brand:"Notebook",category:"Notebook",name:"โน้ตบุ๊กรุ่นตัวอย่าง 15 นิ้ว",qty:2,price:18990},{id:"demo-3",sku:"",brand:"vivo",category:"Smartphone",name:"สมาร์ตโฟนตัวอย่าง 256GB",qty:4,price:12990}];data.updated="ตัวอย่าง ไม่ใช่สต็อกจริง";data.sourceName="DEMO ห้ามส่งชีต";data.syncSource="local";state.selected="demo-1";persist();go("stock");toast("โหลดข้อมูลตัวอย่าง")}if(el.id==="backup"){var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pia-desk-backup.json";a.click();setTimeout(function(){URL.revokeObjectURL(url)},1000)}if(el.id==="reset"&&confirm("ลบสต็อกและข้อมูลที่บันทึกในเบราว์เซอร์นี้ทั้งหมด?")){localStorage.removeItem(K);data=clone(defaults);state.selected="";go("home")}if(el.id==="copy"){var p=picked(),d=Number($("#discount").value||0),c=Number($("#care").value||0),u=Number($("#upfront").value||0),m=Number($("#monthly").value||0),total=Math.max(0,p.price-d)+c+u,txt=[p.name,"ราคาเครื่อง "+fmt(p.price)+" บาท","ส่วนลด "+fmt(d)+" บาท","ประกัน "+fmt(c)+" บาท","จ่ายล่วงหน้า "+fmt(u)+" บาท","ประมาณการชำระ "+fmt(total)+" บาท","รายเดือน "+fmt(m*1.07)+" บาท (รวม VAT โดยประมาณ)","โปรและสิทธิ์ต้องตรวจสอบกับระบบร้าน"].join("\n");navigator.clipboard.writeText(txt).then(function(){toast("คัดลอกใบเสนอราคาแล้ว")},function(){toast("เบราว์เซอร์ไม่อนุญาตให้คัดลอก")})}});
-document.addEventListener("input",function(e){var t=e.target;if(t.id==="search"){var s=t.selectionStart;state.search=t.value;state.showCount=100;render();var n=$("#search");n.focus();n.setSelectionRange(s,s)}if(["discount","care","upfront","monthly"].includes(t.id))updateQuote();if(t.dataset.photoRow!==undefined && t.dataset.photoField){var row=photoRows[Number(t.dataset.photoRow)],key=t.dataset.photoField;if(row){var v=t.value;row[key]=v===""?null:Number(v);photoChanged=true;}return}
+document.addEventListener("input",function(e){var t=e.target;if(t.id==="brandSearch"){var pos=t.selectionStart;state.brandSearch=t.value;render();var field=$("#brandSearch");if(field){field.focus();field.setSelectionRange(pos,pos)}return}
+if(t.id==="search"){var s=t.selectionStart;state.search=t.value;state.showCount=100;render();var n=$("#search");n.focus();n.setSelectionRange(s,s)}if(["discount","care","upfront","monthly"].includes(t.id))updateQuote();if(t.dataset.photoRow!==undefined && t.dataset.photoField){var row=photoRows[Number(t.dataset.photoRow)],key=t.dataset.photoField;if(row){var v=t.value;row[key]=v===""?null:Number(v);photoChanged=true;}return}
 if(t.dataset.k!==undefined){var i=Number(t.dataset.k),col=Number(t.dataset.col),n=Number(t.value);data.kpi[i][col]=Math.max(0,Number.isFinite(n)?n:0);persist();}});
 document.addEventListener("change",function(e){var t=e.target;if(t.id==="photoReportDate"){photoDate=t.value;photoChanged=true;return}
 if((t.id==="photoCamera"||t.id==="photoGallery")&&t.files&&t.files[0]){processPhotoImage(t.files[0]);t.value="";return}
