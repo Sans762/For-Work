@@ -204,6 +204,68 @@ document.addEventListener("dragover",function(e){if(e.dataTransfer && Array.from
 document.addEventListener("dragleave",function(e){var dz=e.target.closest("#dropzone");if(dz && !dz.contains(e.relatedTarget))dz.classList.remove("drag")});
 document.addEventListener("drop",function(e){if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();var dz=e.target.closest("#dropzone");if(dz){dz.classList.remove("drag");receiveFile(e.dataTransfer.files[0])}}});
 document.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.id==="dropzone"){e.preventDefault();var fileInput=$("#file");if(fileInput)fileInput.click()}});
+
+async function processPhotoImage(file){
+ if(!file||photoBusy)return;
+ if(!window.ForWorkPhoto){toast("โมดูลอ่านภาพไม่พร้อม โปรดรีเฟรช");return}
+ photoBusy=true;photoMessage="กำลังเตรียมภาพ...";
+ if(photoPreviewUrl)URL.revokeObjectURL(photoPreviewUrl);
+ photoPreviewUrl=URL.createObjectURL(file);
+ go("photo");
+ try{
+  var r=await window.ForWorkPhoto.scanFile(file,function(status,progress){
+   var node=$("#photoStatus");
+   if(node)node.textContent="กำลังอ่านภาพ: "+status+" "+Math.round(progress*100)+"%";
+  });
+  photoRows=r.rows||[];photoWarnings=r.warnings||[];photoRawText=r.recognizedText||"";
+  photoMessage="อ่านภาพแล้ว "+photoRows.length+" หมวด — ต้องตรวจทุกตัวเลขก่อนบันทึก";
+  photoChanged=true;
+  if(!photoRows.length)photoMessage="OCR ไม่พบแถว PIA ที่ชัดเจน ให้เลือกภาพที่เห็นตารางตรง ๆ หรือกรอก Total เอง";
+ }catch(e){
+  console.error("Photo OCR",e);
+  photoMessage="อ่านภาพไม่สำเร็จ: "+String(e.message||e);
+  toast("อ่านรูปไม่ได้ กรุณาลองใหม่");
+ }finally{
+  photoBusy=false;render();
+ }
+}
+function savePhotoReport(){
+ if(!photoRows.length){toast("กรุณาถ่ายรูปหรือกรอกตัวเลขก่อน");return}
+ var total=photoRows.find(r=>r.category==="Total");
+ if(!total){toast("ต้องมีแถว Total ของ PIA ก่อน");return}
+ if(total.target===null||total.sales===null||!Number.isFinite(Number(total.target))||!Number.isFinite(Number(total.sales))||total.target<=0||total.sales<0){toast("กรุณาตรวจ Target และ Sale ในแถว Total");return}
+ var checkbox=$("#photoVerify");
+ if(!checkbox||!checkbox.checked){toast("ต้องติ๊กยืนยันว่าได้ตรวจตัวเลขจากรูปแล้ว");return}
+ var date=$("#photoReportDate")?.value||photoDate;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast("กรุณาระบุวันที่รายงาน");return}
+ var warnings=window.ForWorkPhoto?.validate(photoRows)||[];
+ if(warnings.length&&!confirm("ตรวจพบข้อสงสัย:\n"+warnings.join("\n")+"\nยืนยันตัวเลขทั้งหมดหลังตรวจรูปแล้วหรือไม่?"))return;
+ photoDate=date;
+ var old=data.photoReport;
+ data.photoReport={
+  reportDate:date,capturedAt:new Date().toISOString(),verified:true,
+  rows:clone(photoRows),source:"Photo OCR (user reviewed)",
+  googleUploadedAt:"",note:"PIA sales table only"
+ };
+ data.target=Number(total.target);data.sales=Number(total.sales);
+ data.salesDate=date;data.salesSource="photo";
+ photoChanged=false;persist();go("home");toast("บันทึกยอด PIA จากภาพแล้ว");
+}
+function uploadVerifiedPhoto(){
+ if(!window.ForWorkGoogle?.appendPhotoReport){toast("ระบบ Google ยังไม่พร้อม");return}
+ var report=data.photoReport;
+ if(!report||!report.verified||photoChanged){toast("กรุณายืนยันข้อมูลจากรูปและบันทึกก่อน");return}
+ if(report.googleUploadedAt){toast("รายการนี้เคยส่ง Google Sheets แล้ว");return}
+ if(!data.sheetId){toast("ยังไม่ได้ตั้งลิงก์ Google Sheets ในเมนูนำเข้า");return}
+ if(!confirm("ส่งยอด PIA ที่ตรวจแล้ววันที่ "+report.reportDate+" จำนวน "+report.rows.length+" หมวด ลง PIA_Photo_Log ใช่หรือไม่?"))return;
+ try{
+  window.ForWorkGoogle.signIn("write").then(async function(){
+   var r=await window.ForWorkGoogle.appendPhotoReport(data.sheetId,report);
+   report.googleUploadedAt=new Date().toISOString();persist();render();
+   toast("บันทึก PIA ลง Google Sheets "+r.count+" แถวแล้ว");
+  }).catch(googleError);
+ }catch(e){googleError(e)}
+}
 var sheetSyncBusy=false;
 function updateGoogleSnapshot(result){
  if(!result||!result.products||!result.products.length)throw Error("Google Sheets ไม่มีรายการสินค้า");
@@ -259,14 +321,23 @@ setInterval(function(){
  if(document.hidden||!data.sheetId||!window.ForWorkGoogle?.hasAccess(false))return;
  syncFromGoogle({toast:false}).catch(function(err){console.warn("Google Sheets background sync stopped:",err)});
 },300000);
-document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.dataset.deviceFacet){state.type=el.dataset.deviceFacet;state.brand="ทั้งหมด";state.search="";state.showCount=100;go("stock");return}
+document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.id==="takePhoto"){var cam=$("#photoCamera");if(cam)cam.click();return}
+if(el.id==="choosePhoto"){var gal=$("#photoGallery");if(gal)gal.click();return}
+if(el.id==="manualPhoto"){photoRows=[window.ForWorkPhoto.blankRow("Total")];photoChanged=true;photoMessage="กรอกข้อมูลใน Total แล้วตรวจยืนยัน";render();return}
+if(el.id==="addPhotoCategory"){var v=$("#photoAddCategory")?.value;if(v&&window.ForWorkPhoto&&!photoRows.some(r=>r.category===v)){photoRows.push(window.ForWorkPhoto.blankRow(v));photoChanged=true;render()}return}
+if(el.id==="savePhoto"){savePhotoReport();return}
+if(el.id==="uploadPhotoGoogle"){uploadVerifiedPhoto();return}
+if(el.dataset.deviceFacet){state.type=el.dataset.deviceFacet;state.brand="ทั้งหมด";state.search="";state.showCount=100;go("stock");return}
 if(el.dataset.brandFacet){state.brand=el.dataset.brandFacet;state.type=el.dataset.device||"ทั้งหมด";state.search="";state.showCount=100;go("stock");return}
 if(el.dataset.type){state.type=el.dataset.type;state.brand="ทั้งหมด";state.showCount=100;render();return}
 if(el.dataset.priceRange!==undefined){var parts=el.dataset.priceRange.split(":");state.minPrice=parts[0]||"";state.maxPrice=parts[1]||"";state.priceRange=el.dataset.priceRange;state.showCount=100;render();return}
 if(el.id==="clearFilters"){state.type="ทั้งหมด";state.brand="ทั้งหมด";state.search="";state.filter="all";state.sort="price_asc";state.minPrice="";state.maxPrice="";state.priceRange="";state.showCount=100;render();return}
 if(el.id==="showMoreProducts"){state.showCount+=100;render();return}if(el.dataset.pick){state.selected=el.dataset.pick;go("quote");return}if(el.id==="copyGoogleOrigin"){navigator.clipboard.writeText("https://sans762.github.io").then(function(){toast("คัดลอก Origin แล้ว")},function(){toast("คัดลอกไม่ได้ กรุณาคัดลอก https://sans762.github.io เอง")});return}if(el.id==="googleCheck"){checkGoogleSetup();return}if(el.id==="googleConnect"){googleConnectClick();return}if(el.id==="googleSync"||el.id==="quickSync"){if(!window.ForWorkGoogle?.hasAccess(false)){if(state.page!=="settings")go("settings");googleConnectClick();return}syncFromGoogle().catch(googleError);return}if(el.id==="saveOAuthClient"){try{if(!window.ForWorkGoogle)throw Error("Google ยังไม่พร้อม");window.ForWorkGoogle.setClientId($("#oauthClientId").value);toast("บันทึก Client ID แล้ว");render()}catch(e){googleError(e)}return}if(el.id==="googleUpload"){googleUploadClick();return}if(el.id==="saveSheetLink"){var v=$("#sheetLink").value.trim();var match=v.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/)||v.match(/^([A-Za-z0-9_-]{20,100})$/);if(!match){toast("ลิงก์ชีตไม่ถูกต้อง");return}data.sheetId=match[1];persist();render();toast("บันทึกลิงก์ Google Sheets แล้ว")}if(el.id==="chooseFile"){var fileInput=$("#file");if(fileInput)fileInput.click()}if(el.id==="saveTarget"){data.target=Math.max(0,Number($("#goal").value||0));data.sales=Math.max(0,Number($("#sold").value||0));persist();go("home");toast("บันทึกแล้ว")}if(el.id==="demo"){data.products=[{id:"demo-1",sku:"",brand:"Samsung",category:"Smartphone",name:"มือถือรุ่นตัวอย่าง 128GB",qty:3,price:6990},{id:"demo-2",sku:"",brand:"Notebook",category:"Notebook",name:"โน้ตบุ๊กรุ่นตัวอย่าง 15 นิ้ว",qty:2,price:18990},{id:"demo-3",sku:"",brand:"vivo",category:"Smartphone",name:"สมาร์ตโฟนตัวอย่าง 256GB",qty:4,price:12990}];data.updated="ตัวอย่าง ไม่ใช่สต็อกจริง";data.sourceName="DEMO ห้ามส่งชีต";data.syncSource="local";state.selected="demo-1";persist();go("stock");toast("โหลดข้อมูลตัวอย่าง")}if(el.id==="backup"){var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pia-desk-backup.json";a.click();setTimeout(function(){URL.revokeObjectURL(url)},1000)}if(el.id==="reset"&&confirm("ลบสต็อกและข้อมูลที่บันทึกในเบราว์เซอร์นี้ทั้งหมด?")){localStorage.removeItem(K);data=clone(defaults);state.selected="";go("home")}if(el.id==="copy"){var p=picked(),d=Number($("#discount").value||0),c=Number($("#care").value||0),u=Number($("#upfront").value||0),m=Number($("#monthly").value||0),total=Math.max(0,p.price-d)+c+u,txt=[p.name,"ราคาเครื่อง "+fmt(p.price)+" บาท","ส่วนลด "+fmt(d)+" บาท","ประกัน "+fmt(c)+" บาท","จ่ายล่วงหน้า "+fmt(u)+" บาท","ประมาณการชำระ "+fmt(total)+" บาท","รายเดือน "+fmt(m*1.07)+" บาท (รวม VAT โดยประมาณ)","โปรและสิทธิ์ต้องตรวจสอบกับระบบร้าน"].join("\n");navigator.clipboard.writeText(txt).then(function(){toast("คัดลอกใบเสนอราคาแล้ว")},function(){toast("เบราว์เซอร์ไม่อนุญาตให้คัดลอก")})}});
-document.addEventListener("input",function(e){var t=e.target;if(t.id==="search"){var s=t.selectionStart;state.search=t.value;state.showCount=100;render();var n=$("#search");n.focus();n.setSelectionRange(s,s)}if(["discount","care","upfront","monthly"].includes(t.id))updateQuote();if(t.dataset.k!==undefined){var i=Number(t.dataset.k),col=Number(t.dataset.col),n=Number(t.value);data.kpi[i][col]=Math.max(0,Number.isFinite(n)?n:0);persist();}});
-document.addEventListener("change",function(e){var t=e.target;if(t.id==="brand"){state.brand=t.value;state.showCount=100;render()}if(t.id==="stockStatus"){state.filter=t.value;state.showCount=100;render()}
+document.addEventListener("input",function(e){var t=e.target;if(t.id==="search"){var s=t.selectionStart;state.search=t.value;state.showCount=100;render();var n=$("#search");n.focus();n.setSelectionRange(s,s)}if(["discount","care","upfront","monthly"].includes(t.id))updateQuote();if(t.dataset.photoRow!==undefined && t.dataset.photoField){var row=photoRows[Number(t.dataset.photoRow)],key=t.dataset.photoField;if(row){var v=t.value;row[key]=v===""?null:Number(v);photoChanged=true;}return}
+if(t.dataset.k!==undefined){var i=Number(t.dataset.k),col=Number(t.dataset.col),n=Number(t.value);data.kpi[i][col]=Math.max(0,Number.isFinite(n)?n:0);persist();}});
+document.addEventListener("change",function(e){var t=e.target;if(t.id==="photoReportDate"){photoDate=t.value;photoChanged=true;return}
+if((t.id==="photoCamera"||t.id==="photoGallery")&&t.files&&t.files[0]){processPhotoImage(t.files[0]);t.value="";return}
+if(t.id==="brand"){state.brand=t.value;state.showCount=100;render()}if(t.id==="stockStatus"){state.filter=t.value;state.showCount=100;render()}
 if(t.id==="sort"){state.sort=t.value;state.showCount=100;render()}
 if(t.id==="minPrice"||t.id==="maxPrice"){state[t.id]=t.value===""?"":String(Math.max(0,Number(t.value)||0));state.priceRange="";state.showCount=100;render()}if(t.id==="item"){state.selected=t.value;render()}if(t.id==="file"&&t.files&&t.files[0])receiveFile(t.files[0])});
 render();
