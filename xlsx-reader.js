@@ -150,7 +150,21 @@
       const rate = Number(r[2]); const eligible = Number(r[3]); const count = Number(r[4]);
       return [label, rate <= 1 ? rate * 100 : rate, Number.isFinite(eligible) ? eligible : 0, Number.isFinite(count) ? count : 0];
     });
-    return { rows: all, sheets: used, salesTarget, kpi };
+    const specRows = await getSheet("Specs_Entry");
+    const specs = Object.create(null);
+    for(const row of specRows.slice(1)){
+      const sku=String(row[0]||"").trim();
+      if(!sku || specs[sku])continue;
+      specs[sku]={
+        ram:String(row[4]??""),storage:String(row[5]??""),chip:String(row[6]??""),
+        display:String(row[7]??""),rear:String(row[8]??""),front:String(row[9]??""),
+        battery:String(row[10]??""),charging:String(row[11]??""),os:String(row[12]??""),
+        connectivity:String(row[13]??""),other:String(row[14]??""),source:String(row[15]??""),
+        checked:String(row[16]??""),status:String(row[17]??"")||"รอข้อมูล",
+        notes:String(row[18]??"")
+      };
+    }
+    return { rows: all, sheets: used, salesTarget, kpi, specs };
 
   }
   root.PIAExcel = { read };
