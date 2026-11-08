@@ -139,6 +139,18 @@ function registerBrand(saveGoogle){
   }).catch(googleError);
  }catch(e){toast(String(e.message||e))}
 }
+function publishPendingBrand(category,brand){
+ if(!data.sheetId){toast("ยังไม่มีลิงก์ Google Sheets");return}
+ if(!window.ForWorkGoogle?.appendBrand){toast("โมดูล Google ยังไม่พร้อม");return}
+ try{
+  window.ForWorkGoogle.signIn("write").then(async()=>{
+   await window.ForWorkGoogle.appendBrand(data.sheetId,category,brand);
+   const index=customBrandIndex(category,brand);
+   if(index>=0)data.customBrands[index].synced=true;
+   persist();render();toast("ส่งแบรนด์ "+brand+" ไป Google Sheets แล้ว");
+  }).catch(googleError);
+ }catch(e){toast(String(e.message||e))}
+}
 function saveNewBrandProduct(){
  const p={category:$("#newProductCategory")?.value,brand:$("#newProductBrand")?.value,
   name:$("#newProductName")?.value?.trim(),sku:$("#newProductSKU")?.value?.trim(),
@@ -201,7 +213,7 @@ function brandsPage(){
    const gid=(gidMap[def.category]||{})[b],external=!hasStock&&base&&gid;
    const open=external?'<a class="brand-big" href="'+base+gid+'" target="_blank" rel="noopener noreferrer">':'<button type="button" class="brand-big" data-brand-facet="'+safe(b)+'" data-device="'+def.category+'">';
    const info=items.length?fmt(items.length)+' รุ่น · '+fmt(total)+' หน่วย':!hasStock?'ดูข้อมูลเมื่อซิงก์':'ยังไม่มีสินค้าของแบรนด์นี้';
-   return '<div class="brand-card-wrap">'+open+'<b>'+safe(b)+'</b><span class="brand-number">'+info+'</span><span class="brand-detail">'+(items.length?'สเปกตรวจแล้ว '+fmt(covered)+' SKU':external?'เปิดชีตของแบรนด์นี้':'แตะเพื่อดูรุ่น')+'</span>'+(reg&&!reg.synced?'<span class="brand-pending">เฉพาะในเครื่อง</span>':'')+(external?'</a>':'</button>')+'<button type="button" class="brand-card-add" data-add-product-brand="'+safe(b)+'" data-add-product-category="'+def.category+'">＋ เพิ่มรุ่น</button></div>';
+   return '<div class="brand-card-wrap">'+open+'<b>'+safe(b)+'</b><span class="brand-number">'+info+'</span><span class="brand-detail">'+(items.length?'สเปกตรวจแล้ว '+fmt(covered)+' SKU':external?'เปิดชีตของแบรนด์นี้':'แตะเพื่อดูรุ่น')+'</span>'+(reg&&!reg.synced?'<span class="brand-pending">เฉพาะในเครื่อง</span>':'')+(external?'</a>':'</button>')+'<button type="button" class="brand-card-add" data-add-product-brand="'+safe(b)+'" data-add-product-category="'+def.category+'">＋ เพิ่มรุ่น</button>'+(reg&&!reg.synced?'<button type="button" class="brand-card-add" data-sync-brand="'+safe(b)+'" data-sync-category="'+def.category+'">↥ ส่งแบรนด์ขึ้นชีต</button>':'')+'</div>';
   }).join("");
   h+='</div></section>';
  }
@@ -503,6 +515,7 @@ document.addEventListener("click",function(e){var el=e.target.closest("button");
 if(el.id==="toggleProductForm"){state.productFormOpen=!state.productFormOpen;state.brandFormOpen=false;render();return}
 if(el.id==="saveBrandLocal"){registerBrand(false);return}
 if(el.id==="saveBrandGoogle"){registerBrand(true);return}
+if(el.dataset.syncBrand){publishPendingBrand(el.dataset.syncCategory,el.dataset.syncBrand);return}
 if(el.dataset.addProductBrand){state.productCategory=el.dataset.addProductCategory||"Smartphone";state.productBrand=el.dataset.addProductBrand;state.productFormOpen=true;state.brandFormOpen=false;state.page="brands";render();window.scrollTo(0,0);return}
 if(el.id==="saveBrandProduct"){saveNewBrandProduct();return}
 if(el.id==="takePhoto"){var cam=$("#photoCamera");if(cam)cam.click();return}
