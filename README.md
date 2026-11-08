@@ -93,3 +93,14 @@ Google Sheets `PIA_Home`, `PIA_Search`, `PIA_Calculator`, และ `Start_Here`
 - นำเข้าไฟล์ Excel จาก Google Sheets เลือก `Stock_View` ก่อน `Inventory` และรองรับหัวคอลัมน์ภาษาไทยที่มีเครื่องหมาย * หรือวงเล็บ
 - ข้อมูลร้านไม่อยู่ในไฟล์ public GitHub (การอ่าน/เขียนชีตส่วนตัวต้องผ่าน OAuth ของเจ้าของบัญชี); สต็อกเดิม 143 รายการ 247 เครื่องยังถูกเก็บไว้จนกว่าเปิดใช้ชุดใหม่
 
+
+## For Work v0.9 — Stock update (2026-11-08)
+
+- Imported 1,374 SKU rows / 4,284 stock units from private uploaded inventory.
+- Original 28-column exports preserved in Raw_Upload_20261108 and Raw_View_Upload_20261108 on Google Sheets. No company inventory was committed to public GitHub.
+- Simplified Stock_Input contains name, quantity, selling price, brand, category, SKU, optional date; Stock_View feeds the web app after Start_Here!B5 is enabled.
+- Demo sentinel source prices -100 or 1000000 are not customer selling prices. Demo entries now use zero selling price in cleaned data, original values remain in archive.
+- Google Sheets Dashboard totals account for all categories rather than the old four-brand subset.
+- Web app v0.9 prevents quotes on Demo, service, store supplies or items without positive price; mixed stock uses generic units.
+- Actual POS snapshot date was not supplied; fill Start_Here!B6 when confirmed.
+- Private Google Sheets needs owner-authorized Google OAuth. 403 access_denied cannot be bypassed by public web code.
