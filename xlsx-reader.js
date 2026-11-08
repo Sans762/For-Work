@@ -161,7 +161,7 @@
         battery:String(row[10]??""),charging:String(row[11]??""),os:String(row[12]??""),
         connectivity:String(row[13]??""),other:String(row[14]??""),source:String(row[15]??""),
         checked:String(row[16]??""),status:String(row[17]??"")||"รอข้อมูล",
-        notes:String(row[18]??"")
+        notes:String(row[18]??""),photo:String(row[19]??""),photoSource:String(row[20]??""),photoNotes:String(row[21]??"")
       };
     }
     const promoSource=await getSheet("True_Promotions"),packageSource=await getSheet("True_Packages");
