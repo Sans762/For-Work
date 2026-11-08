@@ -40,5 +40,10 @@ function render(items,state,escape,fmt,compact){
  }
  return h+'</details></section>';
 }
-root.ForWorkCatalog={render,stats};
+// Names and equipment types only, no SKU, stock amounts, prices, or sales.
+// Snapshot of supported catalog facets; signed-in Stock_View is authoritative for quantities.
+const directory={"Smartphone":["Apple","HONOR","Infinix","iQOO","Nothing","OPPO","realme","Samsung","TECNO","vivo","Xiaomi","ZTE"],"Notebook":["Acer","Apple","ASUS","HP","Lenovo"],"Tablet":["ALLDOCUBE","Apple","BLUE BOX","HONOR","Huawei","Lenovo","OPPO","Samsung","TCL","TECNO","Xiaomi"],"Smartwatch":["AMAZFIT","Apple","HONOR","Huawei","IMOO","MIBRO","Xiaomi"],"Accessory":["7DEGREE","Acer","ALLDOCUBE","ALPHA","ANITECH","APC","Apple","BASEUS","BLUE BOX","BRIGHT","COM7","CYBER","DINO","EPSON","FOX","HERO CAT","HONOR","HP","Huawei","Infinix","iQOO","JOYROOM","JTL","Lenovo","LEXAR","Logitech","MARSHALL","MIBRO","MICROSOFT","Nothing","OPPO","PHILIPS","QPLUS","realme","Samsung","SanDisk","SCREEN CARE","SHEEP","TCL","TECHPRO","TECNO","TOSHINO","UAG","UGREEN","UKIKI","UNIQ","UVOLT","VEGER","VENTION","vivo","WD","WHY","Xiaomi","ZTE"],"Gadget":["BASEUS","BLUE BOX","DJI","FOX","Huawei","JBL","JISULIFE","JLAB","MARSHALL","QPLUS","TECHPRO","TITANV","UGREEN","WHOOP","Xiaomi"],"Gaming":["FANTECH","Logitech","SIGNO","SONY"],"Network":["D-LINK","TP-LINK","UGREEN"],"Printer":["BROTHER","EPSON","HP"],"SIM":["TRUEMOVE"],"Service":["7 SCREEN CARE","Apple","BANANA","BANANA IT","BANANA NOTEBOOK","GADGET","SOCIAL","TRUEMOVE"],"Demo":["70MAI","Acer","ALLDOCUBE","Apple","ASUS","BRIGHT","CMF","DJI","HONOR","HP","Huawei","Infinix","iQOO","JBL","JISULIFE","Lenovo","MARSHALL","MIBRO","Nothing","OPPO","realme","Samsung","SONY","TECHPRO","TECNO","vivo","Xiaomi","ZTE"],"Store Supplies":["BANANA"]};
+function allTypes(){return Object.keys(directory)}
+function brandsFor(type){return type==="ทั้งหมด"?[...new Set(Object.values(directory).flat())].sort((a,b)=>a.localeCompare(b,"th",{sensitivity:"base"})):(directory[type]||[]).slice()}
+root.ForWorkCatalog={render,stats,directory,allTypes,brandsFor};
 })(window);
