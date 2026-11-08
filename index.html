@@ -123,7 +123,35 @@
  .quick-actions .btn{flex:1 1 145px}
 }
 @media(max-width:350px){.stock-actions{grid-template-columns:1fr}.top .tag{max-width:84px}.top strong{font-size:14px}}
-</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.6 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
+
+.spec-modal-overlay{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;background:rgba(5,15,18,.72);padding:14px}
+.spec-modal-overlay:not(:empty){display:flex}
+.spec-modal{display:flex;flex-direction:column;max-height:min(92dvh,870px);height:auto;width:min(100%,780px);border-radius:22px;background:#fff;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.35);color:#1e2830}
+.spec-modal-head{display:flex;align-items:center;gap:12px;padding:14px 17px;border-bottom:1px solid #e6eaed;flex:none;background:#fff}
+.spec-heading{display:flex;flex-direction:column;min-width:0;flex:1;gap:4px}.spec-heading>b{font-size:15px;line-height:1.35;overflow-wrap:anywhere}.spec-heading>.small{color:#687780}
+.spec-close{font-size:27px;line-height:1;flex:0 0 42px;width:42px;height:42px;border-radius:14px;border:1px solid #e0e5e8;background:#f7f8fa;color:#26353e;cursor:pointer}
+.spec-modal-body{padding:15px 17px 18px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;min-height:0;flex:1}
+.spec-visual{background:#f7f9fb;border:1px solid #e6ebee;border-radius:16px;min-height:180px;padding:15px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.spec-visual>img{display:block;width:100%;height:235px;object-fit:contain;object-position:center;background:#fafafa;border-radius:12px}
+.spec-img-fallback{width:100%;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#71808a}
+.spec-img-fallback[hidden]{display:none}.spec-img-fallback>span:first-child{font-size:48px}.spec-img-fallback>b{color:#37434c;font-size:14px}
+.spec-img-fallback>span:last-child{font-size:12px}
+.spec-photo-foot{font-size:11px;color:#77828b;line-height:1.5}
+.spec-photo-foot a,.spec-source{font-weight:800;color:#186e55;text-decoration:underline}
+.spec-meta{display:flex;flex-wrap:wrap;gap:6px;margin:13px 0}
+.spec-meta span{padding:7px 10px;border-radius:9px;background:#eef1f4;font-size:11px;font-weight:650}
+.spec-verified{display:grid;gap:4px;padding:11px 13px;border-radius:12px;font-size:12px;line-height:1.45}
+.spec-verified.yes{background:#eaf5ef;border:1px solid #cfe9da;color:#27734f}.spec-verified.no{background:#fff5df;border:1px solid #ecd7aa;color:#805d21}
+.spec-verified b{font-size:13px}
+.spec-caution,.spec-notes{padding:11px 12px;border-radius:11px;background:#fff8e8;font-size:12px;color:#665329;line-height:1.55;margin-top:12px}
+.spec-notes{background:#f6f7f9;color:#5c6872}
+.spec-modal-grid{margin-top:13px}.spec-modal-grid .specs-cell{background:#fafbfc}
+.spec-source{display:inline-block;font-size:12px;margin:12px 0 2px}
+.spec-modal-foot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:12px 15px;flex:none;background:#fff;border-top:1px solid #e5e9eb}
+.spec-modal-foot .btn{min-height:44px;min-width:0;font-size:11px;text-align:center;white-space:normal;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:8px;line-height:1.35}
+@media(max-width:680px){.spec-modal-overlay{padding:0;align-items:flex-end}.spec-modal{height:auto;max-height:94dvh;border-radius:22px 22px 0 0;width:100%;padding-bottom:env(safe-area-inset-bottom)}.spec-modal-head{padding:13px 14px}.spec-modal-body{padding:13px 14px}.spec-visual>img{height:210px}.spec-modal-foot{gap:6px;padding:10px}.spec-modal-foot .btn{font-size:10px}.spec-modal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:370px){.spec-modal-foot{grid-template-columns:repeat(2,minmax(0,1fr))}.spec-modal-foot .btn:last-child{grid-column:1/-1}.spec-modal-grid{grid-template-columns:1fr}}
+</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.7 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div><div id="specModalRoot" class="spec-modal-overlay"></div>
 <script src="./xlsx-reader.js"></script>
 <script src="./photo-reader.js"></script>
 <script src="./catalog-ui.js"></script>
@@ -360,6 +388,19 @@ function products(){
  if(count<selected.length)h+='<div style="margin-top:13px"><button class="btn full" id="showMoreProducts">แสดงเพิ่มเติม ('+fmt(count)+' / '+fmt(selected.length)+' รุ่น)</button></div>';
  return h;
 }
+
+var previousPageOverflow="";
+function openSpecModal(){
+ var p=data.products.find(x=>x.id===state.selected),root=$("#specModalRoot");
+ if(!p||!root||!window.ForWorkSpecs?.renderModal){toast("ไม่สามารถแสดงสเปกได้ โปรดรีเฟรชหน้าเว็บ");return}
+ if(!root.innerHTML)previousPageOverflow=document.body.style.overflow||"";
+ root.innerHTML=window.ForWorkSpecs.renderModal(p,data.specs||{},safe,fmt,data.sheetId);
+ document.body.style.overflow="hidden";
+ const close=$("#closeSpecModal");if(close)close.focus();
+}
+function closeSpecModal(){
+ var root=$("#specModalRoot");if(root&&root.innerHTML){root.innerHTML="";document.body.style.overflow=previousPageOverflow||""}
+}
 function specPage(){
  var product=data.products.find(function(p){return p.id===state.selected});
  if(!product)return title("สเปกสินค้า","เลือกรุ่นจากหน้าสินค้าก่อน")+'<div class="card"><button class="btn" data-page="stock">← กลับรายการสินค้า</button></div>';
@@ -431,7 +472,7 @@ function menuPage(){
  return h;
 }
 function render(){nav();$("#view").innerHTML=({home:home,brands:brandsPage,stock:products,quote:quote,kpi:kpi,photo:photoPage,spec:specPage,settings:settings,menu:menuPage}[state.page]||home)();if(state.page==="quote")updateQuote()}
-function go(p){if(!tabs.some(function(t){return t[0]===p}))return;state.page=p;render();window.scrollTo(0,0)}
+function go(p){if(!tabs.some(function(t){return t[0]===p}))return;closeSpecModal();state.page=p;render();window.scrollTo(0,0)}
 function parseCSV(txt){var r=[],row=[],field="",q=false;txt=txt.replace(/^\uFEFF/,"");for(var i=0;i<txt.length;i++){var c=txt[i];if(c==='"'){if(q&&txt[i+1]==='"'){field+='"';i++}else q=!q}else if(c===","&&!q){row.push(field);field=""}else if((c==="\n"||c==="\r")&&!q){if(c==="\r"&&txt[i+1]==="\n")i++;row.push(field);if(row.some(function(x){return x.trim()}))r.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(function(x){return x.trim()}))r.push(row);return r}
 function normalize(x,i){var lc={};Object.keys(x).forEach(function(k){lc[k.trim().toLowerCase().replace(/[\s_-]/g,"")]=x[k]});function field(){for(var j=0;j<arguments.length;j++){var v=lc[arguments[j].toLowerCase().replace(/[\s_-]/g,"")];if(v!==undefined&&v!=="")return v}return ""}var name=String(field("ProductName","Name","โน๊ตบุ๊ค","ชื่อสินค้า")||"").trim(),qty=Number(String(field("Quantity","Number","Qty","จำนวน")).replace(/,/g,"")),price=Number(String(field("SetPriceTHB","Set Price","Price","ราคาขาย")).replace(/,/g,""));if(!name||!Number.isFinite(qty)||qty<0||!Number.isFinite(price)||price<0)return null;var brand=String(field("Brand")||(/Samsung/i.test(name)?"Samsung":/OPPO/i.test(name)?"OPPO":/vivo/i.test(name)?"vivo":/Notebook|Laptop|Victus|Lenovo|Asus|Acer|HP /i.test(name)?"Notebook":"อื่นๆ"));var category=String(field("Category","ประเภทสินค้า")||(brand==="Notebook"?"Notebook":"Smartphone"));return {id:String(field("RecordID","Product","SKU")||("row-"+i)),sku:String(field("SKU","Product")||""),name:name,brand:brand,category:category,qty:Math.floor(qty),price:price}}
 function importData(name,text){var values;if(/\.json$/i.test(name)){var raw=JSON.parse(text);if(raw.products&&Array.isArray(raw.products)){data=Object.assign(clone(defaults),raw);persist();render();toast("กู้คืนข้อมูลสำเร็จ");return}if(Array.isArray(raw))values=raw;else throw Error("JSON ไม่มีรายการสินค้า")}else{var rows=parseCSV(text);if(rows.length<2)throw Error("ไฟล์ CSV ว่าง");var heads=rows.shift();values=rows.map(function(r){var o={};heads.forEach(function(h,i){o[h]=r[i]||""});return o})}var mapped=values.map(normalize).filter(Boolean);if(!mapped.length)throw Error("ไม่พบคอลัมน์ ProductName/Name, Quantity/Number, SetPriceTHB/Set Price");var ids=new Set();mapped=mapped.map(function(p,i){if(ids.has(p.id))p.id=p.id+"-"+i;ids.add(p.id);return p});data.products=mapped;data.updated=new Date().toLocaleString("th-TH",{timeZone:"Asia/Bangkok"});state.selected=mapped[0].id;persist();go("stock");toast("นำเข้าสินค้า "+mapped.length+" รายการแล้ว")}
@@ -483,6 +524,8 @@ async function receiveFile(file){
   }
  }catch(err){console.error("For Work import:",err);toast("อ่านไฟล์ไม่ได้: "+String(err.message||err))}
 }
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&$("#specModalRoot")?.innerHTML){e.preventDefault();closeSpecModal()}});
+document.addEventListener("error",function(e){if(e.target?.id==="specProductPhoto"){e.target.hidden=true;var f=$("#specPhotoFallback");if(f)f.hidden=false;}},true);
 document.addEventListener("dragover",function(e){if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"))e.preventDefault();var dz=e.target.closest("#dropzone");if(dz)dz.classList.add("drag")});
 document.addEventListener("dragleave",function(e){var dz=e.target.closest("#dropzone");if(dz && !dz.contains(e.relatedTarget))dz.classList.remove("drag")});
 document.addEventListener("drop",function(e){if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();var dz=e.target.closest("#dropzone");if(dz){dz.classList.remove("drag");receiveFile(e.dataTransfer.files[0])}}});
@@ -614,7 +657,7 @@ setInterval(function(){
  if(document.hidden||!data.sheetId||!window.ForWorkGoogle?.hasAccess(false))return;
  syncFromGoogle({toast:false}).catch(function(err){console.warn("Google Sheets background sync stopped:",err)});
 },300000);
-document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.id==="importLatestExcel"){go("settings");var picker=$("#file");if(picker)picker.click();return}
+document.addEventListener("click",function(e){if(e.target?.id==="specModalRoot"){closeSpecModal();return}var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.id==="importLatestExcel"){go("settings");var picker=$("#file");if(picker)picker.click();return}
 if(el.id==="openBrandAdmin"){state.brandAdmin=true;state.brandFormOpen=false;state.productFormOpen=false;render();return}
 if(el.id==="closeBrandAdmin"){state.brandAdmin=false;render();return}
 if(el.dataset.catalogType){state.catalogType=el.dataset.catalogType;state.brandSearch="";render();return}
@@ -636,7 +679,8 @@ if(el.dataset.brandFacet){state.brand=el.dataset.brandFacet;state.type=el.datase
 if(el.dataset.type){state.type=el.dataset.type;state.brand="ทั้งหมด";state.showCount=100;render();return}
 if(el.dataset.priceRange!==undefined){var parts=el.dataset.priceRange.split(":");state.minPrice=parts[0]||"";state.maxPrice=parts[1]||"";state.priceRange=el.dataset.priceRange;state.showCount=100;render();return}
 if(el.id==="clearFilters"){state.type="ทั้งหมด";state.brand="ทั้งหมด";state.search="";state.filter="all";state.sort="price_asc";state.minPrice="";state.maxPrice="";state.priceRange="";state.showCount=100;render();return}
-if(el.id==="showMoreProducts"){state.showCount+=100;render();return}if(el.dataset.specId){state.selected=el.dataset.specId;state.page="spec";render();window.scrollTo(0,0);return}
+if(el.id==="showMoreProducts"){state.showCount+=100;render();return}if(el.id==="closeSpecModal"){closeSpecModal();return}
+if(el.dataset.specId){state.selected=el.dataset.specId;openSpecModal();return}
 if(el.id==="copySpecs"){var product=data.products.find(function(p){return p.id===state.selected});if(!product||!window.ForWorkSpecs)return;navigator.clipboard.writeText(window.ForWorkSpecs.getText(product,data.specs||{})).then(function(){toast("คัดลอกสเปกแล้ว")},function(){toast("คัดลอกไม่สำเร็จ")});return}
 if(el.dataset.pick){state.selected=el.dataset.pick;go("quote");return}if(el.id==="copyGoogleOrigin"){navigator.clipboard.writeText("https://sans762.github.io").then(function(){toast("คัดลอก Origin แล้ว")},function(){toast("คัดลอกไม่ได้ กรุณาคัดลอก https://sans762.github.io เอง")});return}if(el.id==="googleCheck"){checkGoogleSetup();return}if(el.id==="googleConnect"){googleConnectClick();return}if(el.id==="googleSync"||el.id==="quickSync"){if(!window.ForWorkGoogle?.hasAccess(false)){if(state.page!=="settings")go("settings");googleConnectClick();return}syncFromGoogle().catch(googleError);return}if(el.id==="saveOAuthClient"){try{if(!window.ForWorkGoogle)throw Error("Google ยังไม่พร้อม");window.ForWorkGoogle.setClientId($("#oauthClientId").value);toast("บันทึก Client ID แล้ว");render()}catch(e){googleError(e)}return}if(el.id==="googleUpload"){googleUploadClick();return}if(el.id==="saveSheetLink"){var v=$("#sheetLink").value.trim();var match=v.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/)||v.match(/^([A-Za-z0-9_-]{20,100})$/);if(!match){toast("ลิงก์ชีตไม่ถูกต้อง");return}data.sheetId=match[1];persist();render();toast("บันทึกลิงก์ Google Sheets แล้ว")}if(el.id==="chooseFile"){var fileInput=$("#file");if(fileInput)fileInput.click()}if(el.id==="saveTarget"){data.target=Math.max(0,Number($("#goal").value||0));data.sales=Math.max(0,Number($("#sold").value||0));persist();go("home");toast("บันทึกแล้ว")}if(el.id==="demo"){data.products=[{id:"demo-1",sku:"",brand:"Samsung",category:"Smartphone",name:"มือถือรุ่นตัวอย่าง 128GB",qty:3,price:6990},{id:"demo-2",sku:"",brand:"Notebook",category:"Notebook",name:"โน้ตบุ๊กรุ่นตัวอย่าง 15 นิ้ว",qty:2,price:18990},{id:"demo-3",sku:"",brand:"vivo",category:"Smartphone",name:"สมาร์ตโฟนตัวอย่าง 256GB",qty:4,price:12990}];data.updated="ตัวอย่าง ไม่ใช่สต็อกจริง";data.sourceName="DEMO ห้ามส่งชีต";data.syncSource="local";state.selected="demo-1";persist();go("stock");toast("โหลดข้อมูลตัวอย่าง")}if(el.id==="backup"){var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pia-desk-backup.json";a.click();setTimeout(function(){URL.revokeObjectURL(url)},1000)}if(el.id==="reset"&&confirm("ลบสต็อกและข้อมูลที่บันทึกในเบราว์เซอร์นี้ทั้งหมด?")){localStorage.removeItem(K);data=clone(defaults);state.selected="";go("home")}if(el.id==="copy"){var p=picked(),d=Number($("#discount").value||0),c=Number($("#care").value||0),u=Number($("#upfront").value||0),m=Number($("#monthly").value||0),total=Math.max(0,p.price-d)+c+u,txt=[p.name,"ราคาเครื่อง "+fmt(p.price)+" บาท","ส่วนลด "+fmt(d)+" บาท","ประกัน "+fmt(c)+" บาท","จ่ายล่วงหน้า "+fmt(u)+" บาท","ประมาณการชำระ "+fmt(total)+" บาท","รายเดือน "+fmt(m*1.07)+" บาท (รวม VAT โดยประมาณ)","โปรและสิทธิ์ต้องตรวจสอบกับระบบร้าน"].join("\n");navigator.clipboard.writeText(txt).then(function(){toast("คัดลอกใบเสนอราคาแล้ว")},function(){toast("เบราว์เซอร์ไม่อนุญาตให้คัดลอก")})}});
 document.addEventListener("input",function(e){var t=e.target;if(t.id==="brandSearch"){var pos=t.selectionStart;state.brandSearch=t.value;render();var field=$("#brandSearch");if(field){field.focus();field.setSelectionRange(pos,pos)}return}
