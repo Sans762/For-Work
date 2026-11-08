@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -169,12 +169,23 @@
         const last=entries.find(line=>text(line[3]).toLowerCase()==="total");
         photoLatest={reportDate:text(last[1]),capturedAt:text(last[0]),rows,verified:true,googleUploadedAt:text(last[0]),source:"Google Sheets · PIA_Photo_Log"};
       }
+      const specRows=rowObjects(a[5]?.values),specs=Object.create(null);
+      for(const x of specRows){
+        const sku=text(x.SKU);if(!sku||specs[sku])continue;
+        specs[sku]={
+          ram:text(x.RAM_GB),storage:text(x.Storage_GB),chip:text(x.Chipset_CPU),
+          display:text(x.Display),rear:text(x.Rear_Camera),front:text(x.Front_Camera),
+          battery:text(x.Battery),charging:text(x.Charging),os:text(x.OS),
+          connectivity:text(x.Connectivity),other:text(x.Other_Spec),source:text(x.Source_URL),
+          checked:text(x.Checked_Date),status:text(x.Spec_Status)||"รอข้อมูล",notes:text(x.Notes)
+        };
+      }
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
         target: total ? number(total.MonthlyTargetTHB) : null,
         sales: total ? number(total.SalesAtSnapshotTHB) : null,
         salesDate: total ? text(total.SnapshotDate) : "",
-        kpi, sourceLabel, snapshotDate, photoLatest,
+        kpi, sourceLabel, snapshotDate, photoLatest, specs,
         syncedAt: new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
       };
     } finally { running = false; }
