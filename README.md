@@ -11,9 +11,9 @@
 - จอเล็ก/ใหญ่ปรับตามอุปกรณ์, มี PWA manifest, offline app shell
 
 ## เปิดเว็บออนไลน์
-1. เข้าหน้า GitHub repository [Settings → Pages](https://github.com/Sans762/For-Work/settings/pages)
-2. ตั้ง **Build and deployment → Source: Deploy from a branch**
-3. เลือก **main** และ **/(root)** จากนั้น Save
+1. เปิด [Pages Settings](https://github.com/Sans762/For-Work/settings/pages) ของรีโป (จำเป็นต้องกดด้วยบัญชีเจ้าของ)
+2. ใต้ **Build and deployment**, เลือก **Source: Deploy from a branch**
+3. เลือก Branch **main**, Folder **/(root)** และกด **Save**
 4. รอ GitHub ยืนยันการเผยแพร่และเปิด URL ที่แสดงในหน้า Pages (โดยทั่วไปเป็น `https://sans762.github.io/For-Work/` แต่โปรดตรวจผลการเผยแพร่จริง)
 
 เมื่อตั้งค่านี้แล้ว การแก้ไฟล์บนสาขา main จะทำให้ GitHub Pages สร้างเวอร์ชันใหม่ให้อัตโนมัติ
