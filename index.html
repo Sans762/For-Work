@@ -132,6 +132,7 @@
 .spec-close{font-size:27px;line-height:1;flex:0 0 42px;width:42px;height:42px;border-radius:14px;border:1px solid #e0e5e8;background:#f7f8fa;color:#26353e;cursor:pointer}
 .spec-modal-body{padding:15px 17px 18px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;min-height:0;flex:1}
 .spec-visual{background:#f7f9fb;border:1px solid #e6ebee;border-radius:16px;min-height:180px;padding:15px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.spec-visual>img[hidden]{display:none}
 .spec-visual>img{display:block;width:100%;height:235px;object-fit:contain;object-position:center;background:#fafafa;border-radius:12px}
 .spec-img-fallback{width:100%;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#71808a}
 .spec-img-fallback[hidden]{display:none}.spec-img-fallback>span:first-child{font-size:48px}.spec-img-fallback>b{color:#37434c;font-size:14px}
@@ -389,17 +390,19 @@ function products(){
  return h;
 }
 
-var previousPageOverflow="";
+var previousPageOverflow="",modalHistoryArmed=false;
 function openSpecModal(){
  var p=data.products.find(x=>x.id===state.selected),root=$("#specModalRoot");
  if(!p||!root||!window.ForWorkSpecs?.renderModal){toast("ไม่สามารถแสดงสเปกได้ โปรดรีเฟรชหน้าเว็บ");return}
  if(!root.innerHTML)previousPageOverflow=document.body.style.overflow||"";
  root.innerHTML=window.ForWorkSpecs.renderModal(p,data.specs||{},safe,fmt,data.sheetId);
  document.body.style.overflow="hidden";
+ if(!modalHistoryArmed&&typeof history.pushState==="function"){history.pushState({fwSpecModal:true},"",location.href);modalHistoryArmed=true}
  const close=$("#closeSpecModal");if(close)close.focus();
 }
-function closeSpecModal(){
+function closeSpecModal(fromHistory){
  var root=$("#specModalRoot");if(root&&root.innerHTML){root.innerHTML="";document.body.style.overflow=previousPageOverflow||""}
+ if(modalHistoryArmed){modalHistoryArmed=false;if(!fromHistory&&typeof history.back==="function")history.back()}
 }
 function specPage(){
  var product=data.products.find(function(p){return p.id===state.selected});
@@ -543,6 +546,7 @@ async function receiveFile(file){
   }
  }catch(err){console.error("For Work import:",err);toast("อ่านไฟล์ไม่ได้: "+String(err.message||err))}
 }
+if(typeof window.addEventListener==="function")window.addEventListener("popstate",function(){if(modalHistoryArmed)closeSpecModal(true)});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&$("#specModalRoot")?.innerHTML){e.preventDefault();closeSpecModal()}});
 document.addEventListener("error",function(e){if(e.target?.id==="specProductPhoto"){e.target.hidden=true;var f=$("#specPhotoFallback");if(f)f.hidden=false;}},true);
 document.addEventListener("dragover",function(e){if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files"))e.preventDefault();var dz=e.target.closest("#dropzone");if(dz)dz.classList.add("drag")});
