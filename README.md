@@ -171,3 +171,12 @@ Google Sheets ส่วนตัวมีหน้า `Brand_Hub` และแ�
 - The banner offers the existing OAuth sync and an immediate Excel import file picker; the source Google Sheet is unchanged.
 - Home page category totals now use Smartphone, Notebook, Accessory and Tablet rather than only Samsung, OPPO, vivo and a generic Notebook brand.
 - Advanced add-brand/product UI preserved behind the dedicated management action; other app routes retained. Check live stock availability against the authenticated spreadsheet/POS.
+
+## v1.7 — Product photos in specifications popup
+
+- Specs buttons now open a responsive dialog on the same page, showing a SKU-matched photo when available, chip, screen, memory, cameras, battery, and verification status.
+- Private Specs_Entry has new columns T:V: Photo_URL, Photo_Source_URL, Photo_Notes. 11 stock SKUs have matched example images; no generic or unrelated photo is substituted for missing images.
+- Images may be external and can fail to load; the dialog displays a clear fallback and link to photo/source search instead of a broken image or silently showing another model.
+- Photo source and manufacturer/spec source are visibly separate; SKU, color and regional versions should still be checked before sale.
+- The True quote screen can now select internet plans from True_Packages, or conditional discounts from True_Promotions after Google Sheets sync or Excel import. Local official MNP plans remain as a public fallback with no automatic phone discount.
+- Mobile sheet stock buttons were refactored into a two-column responsive grid, with additional actions under disclosure so they no longer overlap at narrow widths.
