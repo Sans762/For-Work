@@ -13,8 +13,8 @@ const CATEGORIES=[
 {key:"Sim",match:/^sim$/i},{key:"Total",match:/^tot[ae]l$/i}
 ];
 const COLUMNS=[
-["target",.162],["sales",.260],["lastMonth",.345],["lastYear",.425],["forecast",.497],
-["achieve",.564],["forecastPct",.633],["mom",.704],["yoy",.775],["targetDay",.854],["commission",.938]
+["target",.149],["sales",.225],["lastMonth",.301],["lastYear",.375],["forecast",.465],
+["achieve",.529],["forecastPct",.589],["mom",.657],["yoy",.718],["targetDay",.793],["commission",.875]
 ];
 const FIELDS=COLUMNS.map(c=>c[0]);
 const numericFields=FIELDS.filter(x=>!["achieve","forecastPct","mom","yoy"].includes(x));
@@ -26,7 +26,8 @@ function extractNumber(text,percent){
  const m=t.match(/-?\d[\d,]*(?:\.\d+)?/);
  if(!m)return null;
  const n=Number(m[0].replace(/,/g,""));
- if(!Number.isFinite(n)||n<0)return null;
+ if(!Number.isFinite(n))return null;
+ if(n<0&&!percent)return null;
  if(percent && n>1000)return null;
  return n;
 }
@@ -84,6 +85,22 @@ function parseWords(words,width,height,rawText){
  // the LAST "Category / Target / Sale" header to isolate the PIA section.
  const headers=lineGroups.filter(g=>g.words.some(w=>/^categor[yv]$/i.test(w.text))&&g.words.some(w=>/targ[e]?t/i.test(w.text)));
  const headerY=headers.length?headers[headers.length-1].y:0;
+ // Estimate column centers from OCR header positions where possible.
+ const dynamic=new Map(COLUMNS.map(([k,x])=>[k,x]));
+ if(headers.length){
+  const hw=headers[headers.length-1].words.sort((a,b)=>a.x-b.x);
+  const check=[
+   ["target",/target/i],["sales",/^(?:sale|sales)$/i],["lastMonth",/last.?month/i],["lastYear",/last.?year/i],
+   ["forecast",/^forecast$/i],["achieve",/achieve/i],["forecastPct",/%?forecast/i],
+   ["mom",/%?mom/i],["yoy",/%?yoy/i],["commission",/commiss/i]
+  ];
+  for(const [key,pattern] of check){
+   const cand=hw.filter(w=>pattern.test(w.text)&&!(key==="forecast"&&w.text.startsWith("%"))&&!(key==="forecastPct"&&!w.text.startsWith("%")));
+   if(cand.length)dynamic.set(key,cand[0].x/width);
+  }
+  const day=hw.find(w=>/day/i.test(w.text));
+  if(day)dynamic.set("targetDay",day.x/width);
+ }
  const candidates=[];
  for(const g of lineGroups){
   if(g.y<=headerY+tolerance*.75)continue;
@@ -100,7 +117,7 @@ function parseWords(words,width,height,rawText){
   for(const w of words){
    if(w.x<width*.10)continue;
    let nearest=null,best=Infinity;
-   for(const [key,center] of COLUMNS){
+   for(const [key,center] of dynamic){
     const dist=Math.abs((w.x/width)-center);
     if(dist<best){best=dist;nearest=key}
    }
@@ -178,9 +195,15 @@ async function scanFile(file,onProgress){
  let worker;
  try{
   worker=await t.createWorker("eng",1,{logger:m=>{if(typeof onProgress==="function"&&m.status)onProgress(m.status,Number(m.progress||0))}});
-  const response=await worker.recognize(canvas);
+  const response=await worker.recognize(canvas,{}, {text:true,tsv:true});
   const d=response.data||{};
-  const rows=parseWords(d.words,canvas.width,canvas.height,d.text||"");
+  const tsvWords=String(d.tsv||"").split(/\r?\n/).slice(1).map(line=>{
+    const c=line.split("\t");
+    if(c.length<12||c[0]!=="5"||!c.slice(11).join("\t").trim())return null;
+    const left=Number(c[6]),top=Number(c[7]),w=Number(c[8]),h=Number(c[9]);
+    return {text:c.slice(11).join("\t"),confidence:Number(c[10]),bbox:{x0:left,y0:top,x1:left+w,y1:top+h}};
+  }).filter(Boolean);
+  const rows=parseWords(tsvWords,canvas.width,canvas.height,d.text||"");
   return {rows,warnings:validate(rows),recognizedText:d.text||"",confidence:d.confidence||0,width:canvas.width,height:canvas.height};
  }finally{if(worker)await worker.terminate()}
 }
