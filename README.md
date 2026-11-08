@@ -162,3 +162,12 @@ Google Sheets ส่วนตัวมีหน้า `Brand_Hub` และแ�
 - Per-brand Add Model buttons were replaced with one contextual Add Model control in the selected brand's product listing.
 - Manual Add Brand is an advanced collapsed action, used only when the brand is truly missing from the Sheet.
 - No inventory spreadsheet data was modified by this UI change. Cache bumped for existing PWA installations.
+
+## v1.6 — Full brand directory, stale-stock diagnosis, and mobile repair
+
+- Product catalog browsing now supports 13 distinct equipment types and 78 unique brand names derived from the private Stock_View grouping. Public JavaScript includes only category/brand labels: no private SKU, quantity, price, or customer data.
+- Brand screen shows a single equipment-category ribbon and brand cards, replacing the old hardcoded Smartphone/Notebook-only view; mobile brand dropdown includes the complete directory even when an outdated subset is cached.
+- Cached 143-item snapshots are explicitly labeled incomplete; Google/Excel stock data in the mobile browser is not represented as freshly synchronized simply because it was previously loaded via Google OAuth.
+- The banner offers the existing OAuth sync and an immediate Excel import file picker; the source Google Sheet is unchanged.
+- Home page category totals now use Smartphone, Notebook, Accessory and Tablet rather than only Samsung, OPPO, vivo and a generic Notebook brand.
+- Advanced add-brand/product UI preserved behind the dedicated management action; other app routes retained. Check live stock availability against the authenticated spreadsheet/POS.
