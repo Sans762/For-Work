@@ -155,7 +155,7 @@ function saveNewBrandProduct(){
  const p={category:$("#newProductCategory")?.value,brand:$("#newProductBrand")?.value,
   name:$("#newProductName")?.value?.trim(),sku:$("#newProductSKU")?.value?.trim(),
   qty:Number($("#newProductQty")?.value),price:Number($("#newProductPrice")?.value)};
- if(!p.category||!p.brand||!p.name||!Number.isInteger(p.qty)||p.qty<0||!Number.isFinite(p.price)||p.price<0){
+ if(!p.category||!p.brand||!p.name||$("#newProductQty")?.value===""||$("#newProductPrice")?.value===""||!Number.isInteger(p.qty)||p.qty<0||!Number.isFinite(p.price)||p.price<0){
   toast("กรุณากรอกหมวด แบรนด์ รุ่น จำนวน และราคาให้ถูกต้อง");return;
  }
  if(!data.sheetId){toast("ยังไม่มีลิงก์ชีต โปรดตั้งค่า Google Sheets ก่อน");return}
