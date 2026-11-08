@@ -84,5 +84,45 @@ function render(product,specs,esc,fmt,sheetId){
  h+='</div><div class="small" style="margin-top:12px">โปรดเทียบ SKU / รุ่นย่อย / ภูมิภาคก่อนใช้อธิบายหรือเสนอขาย สเปกอาจแตกต่างกันตามรุ่น</div></div>';
  return h;
 }
-root.ForWorkSpecs={get,render,preview,getText,fromName};
+
+function renderModal(product,index,esc,fmt,sheetId){
+ const info=get(product,index),fields=info.fields;
+ const verified=info.official && !!info.source;
+ const pic=validUrl(fields.photo),photoSource=validUrl(fields.photoSource),specSource=validUrl(info.source);
+ const q=encodeURIComponent(String(product.brand||"")+" "+String(product.name||"")+" product picture front back");
+ const search="https://www.google.com/search?tbm=isch&q="+q;
+ const gid=/^[A-Za-z0-9_-]{20,130}$/.test(String(sheetId||""))?
+  "https://docs.google.com/spreadsheets/d/"+encodeURIComponent(sheetId)+"/edit#gid=501601":"";
+ let html='<div class="spec-modal" role="dialog" aria-modal="true" aria-labelledby="specModalTitle" aria-describedby="specModalExplain">';
+ html+='<div class="spec-modal-head"><div class="spec-heading"><span class="small">รายละเอียดสินค้า / '+esc(product.brand||"")+'</span><b id="specModalTitle">'+esc(product.name||"สินค้า")+'</b></div><button class="spec-close" type="button" id="closeSpecModal" aria-label="ปิดรายละเอียดสเปก">×</button></div>';
+ html+='<div class="spec-modal-body">';
+ html+='<div class="spec-visual">';
+ if(pic){
+  html+='<img id="specProductPhoto" src="'+esc(pic)+'" alt="รูปตัวอย่าง '+esc(product.name||"")+'" loading="eager" decoding="async">';
+  html+='<div class="spec-img-fallback" id="specPhotoFallback" hidden><span>▣</span><b>ไม่สามารถโหลดภาพตัวเครื่อง</b><span>เปิดแหล่งภาพด้านล่างได้</span></div>';
+ }else{
+  html+='<div class="spec-img-fallback"><span>'+(String(product.category||"")==="Notebook"?'💻':'📱')+'</span><b>ยังไม่มีรูปยืนยันรุ่นนี้</b><span>เพิ่มลิงก์ Photo_URL ใน Specs_Entry หรือค้นหารูปจากผู้ผลิต</span></div>';
+ }
+ html+='<div class="spec-photo-foot">'+(pic?"รูปตัวอย่างสินค้า: สี/ความจุอาจต่างจาก SKU ที่เลือก":"จะไม่ใช้รูปของรุ่นอื่นแทน")+
+ (photoSource?' · <a href="'+esc(photoSource)+'" target="_blank" rel="noopener noreferrer">แหล่งภาพ</a>':'')+'</div>';
+ if(fields.photoNotes)html+='<div class="small">'+esc(fields.photoNotes)+'</div>';
+ html+='</div>';
+ html+='<div class="spec-meta"><span>SKU: '+esc(product.sku||"—")+'</span><span>ราคาในไฟล์ '+fmt(product.price)+' บาท</span><span>คงเหลือ '+fmt(product.qty)+' หน่วย</span></div>';
+ html+='<div id="specModalExplain" class="spec-verified '+(verified?'yes':'no')+'"><b>'+(verified?'✓ มีแหล่งอ้างอิง':'⚠ ข้อมูลยังไม่ยืนยันครบ')+'</b><span>'+esc(info.status)+(fields.checked?' · ตรวจเมื่อ '+esc(fields.checked):'')+'</span></div>';
+ if(info.inferred||(/จากชื่อรุ่น/i.test(info.status)))html+='<div class="spec-caution">RAM/ROM บางค่าอ่านจากชื่อสินค้า ยังไม่ได้ยืนยันจากเอกสารรุ่นย่อย และอาจมี RAM เสมือน</div>';
+ if(info.hasDetails){
+  html+='<div class="specs-grid spec-modal-grid">'+ordered.filter(k=>String(fields[k]??"").trim()).map(k=>{
+   const val=(k==="ram"||k==="storage")?String(fields[k])+" GB":String(fields[k]);
+   return '<div class="specs-cell"><span class="small">'+labels[k]+'</span><b>'+esc(val)+'</b></div>';
+  }).join("")+'</div>';
+ }else html+='<div class="spec-caution">ยังไม่มีรายละเอียดสเปกที่ตรวจสอบได้ ให้ตรวจรุ่นและรหัสบนกล่องก่อนเสนอขาย</div>';
+ if(fields.notes)html+='<div class="spec-notes">'+esc(fields.notes)+'</div>';
+ if(specSource)html+='<a class="spec-source" target="_blank" rel="noopener noreferrer" href="'+esc(specSource)+'">ตรวจสเปกที่เว็บไซต์อ้างอิง</a>';
+ html+='<div class="spec-caution">โปรดตรวจ SKU / รุ่นย่อย / ความจุ / สีจริง และเทียบข้อมูลผู้ผลิตก่อนใช้อธิบายลูกค้า ภาพเป็นภาพตัวอย่าง ไม่ใช่รูปยืนยันของสินค้าชิ้นนั้น</div>';
+ html+='</div><div class="spec-modal-foot"><button type="button" class="btn dark" id="copySpecs">คัดลอกสเปก</button>'+
+ (gid?'<a class="btn" target="_blank" rel="noopener" href="'+esc(gid)+'">✎ แก้สเปก / ภาพ</a>':'')+
+ '<a class="btn" href="'+search+'" target="_blank" rel="noopener noreferrer">ค้นหารูปเพิ่มเติม</a></div></div>';
+ return html;
+}
+root.ForWorkSpecs={get,render,renderModal,preview,getText,fromName};
 })(window);
