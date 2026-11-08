@@ -67,3 +67,16 @@ Client ID (public metadata) อยู่ใน localStorage ของอุป�
 **ข้อจำกัด:** เวอร์ชันเว็บไม่มีทางอ่าน Google Sheets แบบ private โดยไม่ตั้งค่า OAuth / ล็อกอิน Google ที่ได้รับสิทธิ์ก่อน เซสชัน OAuth มีอายุจำกัดและอาจต้องกดเชื่อมใหม่ การทดสอบบนเว็บจริงต้องใช้ Client ID ของเจ้าของบัญชี จึงยังตรวจ E2E OAuth แบบจริงไม่ได้จากแชตนี้
 
 **ระวังข้อมูล:** ไฟล์ที่มีข้อมูลสต็อกภายในบริษัทจะถูกส่งไปบัญชี Google Drive ส่วนตัวได้เฉพาะเมื่อบริษัทอนุญาต ห้ามเปลี่ยนแชร์ชีตเป็น Anyone หรือ Publish to web
+
+## For Work v0.7 — Google setup guide & self-check
+
+- เข้า `https://sans762.github.io/For-Work/` → **นำเข้า** → ทำตามคู่มือ 4 ขั้นตอนในหน้าแอป
+- ต้องใช้ Google OAuth Client ID (Web application) ของโปรเจกต์ Google Cloud ของเจ้าของบัญชีเอง; **Authorized JavaScript origin** คือ `https://sans762.github.io` โดยไม่มี path
+- เปิด Google Sheets API; ตั้งค่า Auth Platform → Branding และ Audience, เพิ่มบัญชีตัวเองใน Test users หากใช้โหมด Testing; สร้าง Client ID แล้วใส่หน้าแอป
+- ปุ่ม **ตรวจระบบ** ตรวจว่ามี HTTPS, Sheet ID, Client ID, Google Identity library, และสิทธิ์ Google หรือยัง
+- ปุ่ม **ซิงก์** ที่ยังไม่ได้ล็อกอินจะนำไปหน้าตั้งค่าหรือเปิดคำขอสิทธิ์ เมื่อพร้อมจะอ่าน `Stock_View` และข้อมูล KPI จากชีตส่วนตัวโดยตรง
+- ตัวเว็บไซต์และข้อมูลธุรกิจแยกกัน: โค้ด public บน GitHub Pages แต่ข้อมูลสต็อกยังเป็น private บน Google Sheets และ localStorage ของอุปกรณ์ที่ใช้งาน
+
+Google Sheets `PIA_Home`, `PIA_Search`, `PIA_Calculator`, และ `Start_Here` ใช้สต็อก `Stock_View` ที่เปลี่ยนได้จาก `Stock_Input`; สูตรใน `Start_Here!B10:B13` คำนวณยอดรวม/ข้อมูลผิดปกติใหม่แล้ว
+
+**ทดสอบแล้ว:** โค้ด JS syntax, จำลองขั้นตอนกดซิงก์→ล็อกอิน→อ่านชีต, ค่าจาก Google Sheets จริง 143 รายการ/247 เครื่อง, GitHub Pages deploy. **ยังไม่ได้ทดสอบ OAuth กับบัญชีจริง** จนกว่าจะได้ OAuth Client ID ที่เจ้าของบัญชีสร้างและอนุญาตเอง
