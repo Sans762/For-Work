@@ -80,7 +80,56 @@ document.addEventListener("dragover",function(e){if(e.dataTransfer && Array.from
 document.addEventListener("dragleave",function(e){var dz=e.target.closest("#dropzone");if(dz && !dz.contains(e.relatedTarget))dz.classList.remove("drag")});
 document.addEventListener("drop",function(e){if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();var dz=e.target.closest("#dropzone");if(dz){dz.classList.remove("drag");receiveFile(e.dataTransfer.files[0])}}});
 document.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.id==="dropzone"){e.preventDefault();var fileInput=$("#file");if(fileInput)fileInput.click()}});
-document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.dataset.type){state.type=el.dataset.type;render();return}if(el.dataset.pick){state.selected=el.dataset.pick;go("quote");return}if(el.id==="saveSheetLink"){var v=$("#sheetLink").value.trim();var match=v.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/)||v.match(/^([A-Za-z0-9_-]{20,100})$/);if(!match){toast("ลิงก์ชีตไม่ถูกต้อง");return}data.sheetId=match[1];persist();render();toast("บันทึกลิงก์ Google Sheets แล้ว")}if(el.id==="chooseFile"){var fileInput=$("#file");if(fileInput)fileInput.click()}if(el.id==="saveTarget"){data.target=Math.max(0,Number($("#goal").value||0));data.sales=Math.max(0,Number($("#sold").value||0));persist();go("home");toast("บันทึกแล้ว")}if(el.id==="demo"){data.products=[{id:"demo-1",sku:"",brand:"Samsung",category:"Smartphone",name:"มือถือรุ่นตัวอย่าง 128GB",qty:3,price:6990},{id:"demo-2",sku:"",brand:"Notebook",category:"Notebook",name:"โน้ตบุ๊กรุ่นตัวอย่าง 15 นิ้ว",qty:2,price:18990},{id:"demo-3",sku:"",brand:"vivo",category:"Smartphone",name:"สมาร์ตโฟนตัวอย่าง 256GB",qty:4,price:12990}];data.updated="ตัวอย่าง ไม่ใช่สต็อกจริง";state.selected="demo-1";persist();go("stock");toast("โหลดข้อมูลตัวอย่าง")}if(el.id==="backup"){var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pia-desk-backup.json";a.click();setTimeout(function(){URL.revokeObjectURL(url)},1000)}if(el.id==="reset"&&confirm("ลบสต็อกและข้อมูลที่บันทึกในเบราว์เซอร์นี้ทั้งหมด?")){localStorage.removeItem(K);data=clone(defaults);state.selected="";go("home")}if(el.id==="copy"){var p=picked(),d=Number($("#discount").value||0),c=Number($("#care").value||0),u=Number($("#upfront").value||0),m=Number($("#monthly").value||0),total=Math.max(0,p.price-d)+c+u,txt=[p.name,"ราคาเครื่อง "+fmt(p.price)+" บาท","ส่วนลด "+fmt(d)+" บาท","ประกัน "+fmt(c)+" บาท","จ่ายล่วงหน้า "+fmt(u)+" บาท","ประมาณการชำระ "+fmt(total)+" บาท","รายเดือน "+fmt(m*1.07)+" บาท (รวม VAT โดยประมาณ)","โปรและสิทธิ์ต้องตรวจสอบกับระบบร้าน"].join("\n");navigator.clipboard.writeText(txt).then(function(){toast("คัดลอกใบเสนอราคาแล้ว")},function(){toast("เบราว์เซอร์ไม่อนุญาตให้คัดลอก")})}});
+var sheetSyncBusy=false;
+function updateGoogleSnapshot(result){
+ if(!result||!result.products||!result.products.length)throw Error("Google Sheets ไม่มีรายการสินค้า");
+ data.products=result.products;
+ data.syncSource="google";data.updated=result.syncedAt;data.sourceName="Google Sheets — Stock_View";
+ data.stockSource=result.sourceLabel;data.sourceDate=result.snapshotDate;
+ if(result.target!==null)data.target=result.target;
+ if(result.sales!==null)data.sales=result.sales;
+ if(result.salesDate)data.salesDate=result.salesDate;
+ if(result.kpi&&result.kpi.length)data.kpi=result.kpi;
+ state.selected=data.products[0].id;state.type="ทั้งหมด";state.brand="ทั้งหมด";state.search="";
+ persist();render();
+}
+async function syncFromGoogle(opts){
+ if(sheetSyncBusy)return;
+ if(!window.ForWorkGoogle)throw Error("โมดูล Google ไม่พร้อม กรุณารีเฟรช");
+ if(!data.sheetId)throw Error("ยังไม่ได้ตั้งลิงก์ Google Sheets ในหน้านำเข้า");
+ if(!window.ForWorkGoogle.hasAccess(false))throw Error("กด เชื่อม Google ที่หน้านำเข้าก่อน");
+ sheetSyncBusy=true;
+ try{
+  const r=await window.ForWorkGoogle.sync(data.sheetId);
+  updateGoogleSnapshot(r);
+  if(!opts||opts.toast!==false)toast("ซิงก์ "+fmt(r.products.length)+" รายการ / "+fmt(r.stockQty)+" เครื่องแล้ว");
+ }finally{sheetSyncBusy=false}
+}
+function googleError(e){console.error("For Work Google",e);toast(e&&e.message||"เชื่อม Google ไม่สำเร็จ")}
+function googleConnectClick(){
+ try{if(!window.ForWorkGoogle)throw Error("โมดูล Google ยังไม่พร้อม");
+  window.ForWorkGoogle.signIn("read").then(function(){render();return syncFromGoogle()}).catch(googleError);
+ }catch(e){googleError(e)}
+}
+function googleUploadClick(){
+ if(!window.ForWorkGoogle){toast("รีเฟรชเว็บก่อน");return}
+ if(!data.sheetId){toast("ยังไม่ได้ตั้งลิงก์ Google Sheets");return}
+ if(!data.products.length){toast("นำเข้า Excel/CSV ในเว็บก่อน");return}
+ if(!data.sourceName || data.sourceName.indexOf("Google Sheets —")>=0){toast("ต้องเลือกไฟล์สต็อกใหม่ก่อนส่งขึ้นชีต");return}
+ const inp=$("#uploadSnapshotDate"),date=inp?inp.value:"";
+ if(!date){toast("กรุณาเลือกวันที่ดึงสต็อก");return}
+ if(!confirm("แทนที่ Stock_Input ของ Google Sheets ด้วย "+fmt(data.products.length)+" รายการใช่หรือไม่? (ต้องได้รับอนุญาตบริษัท)"))return;
+ try{window.ForWorkGoogle.signIn("write").then(async function(){
+  const r=await window.ForWorkGoogle.upload(data.sheetId,data.products,date);
+  toast("ส่ง "+fmt(r.rows)+" รายการเข้า Google Sheets แล้ว");
+  data.sourceDate=date;persist();await syncFromGoogle();
+ }).catch(googleError)}catch(e){googleError(e)}
+}
+setInterval(function(){
+ if(document.hidden||!data.sheetId||!window.ForWorkGoogle?.hasAccess(false))return;
+ syncFromGoogle({toast:false}).catch(function(err){console.warn("Google Sheets background sync stopped:",err)});
+},300000);
+document.addEventListener("click",function(e){var el=e.target.closest("button");if(!el)return;if(el.dataset.page){go(el.dataset.page);return}if(el.dataset.type){state.type=el.dataset.type;render();return}if(el.dataset.pick){state.selected=el.dataset.pick;go("quote");return}if(el.id==="googleConnect"){googleConnectClick();return}if(el.id==="googleSync"||el.id==="quickSync"){syncFromGoogle().catch(googleError);return}if(el.id==="saveOAuthClient"){try{if(!window.ForWorkGoogle)throw Error("Google ยังไม่พร้อม");window.ForWorkGoogle.setClientId($("#oauthClientId").value);toast("บันทึก Client ID แล้ว");render()}catch(e){googleError(e)}return}if(el.id==="googleUpload"){googleUploadClick();return}if(el.id==="saveSheetLink"){var v=$("#sheetLink").value.trim();var match=v.match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})/)||v.match(/^([A-Za-z0-9_-]{20,100})$/);if(!match){toast("ลิงก์ชีตไม่ถูกต้อง");return}data.sheetId=match[1];persist();render();toast("บันทึกลิงก์ Google Sheets แล้ว")}if(el.id==="chooseFile"){var fileInput=$("#file");if(fileInput)fileInput.click()}if(el.id==="saveTarget"){data.target=Math.max(0,Number($("#goal").value||0));data.sales=Math.max(0,Number($("#sold").value||0));persist();go("home");toast("บันทึกแล้ว")}if(el.id==="demo"){data.products=[{id:"demo-1",sku:"",brand:"Samsung",category:"Smartphone",name:"มือถือรุ่นตัวอย่าง 128GB",qty:3,price:6990},{id:"demo-2",sku:"",brand:"Notebook",category:"Notebook",name:"โน้ตบุ๊กรุ่นตัวอย่าง 15 นิ้ว",qty:2,price:18990},{id:"demo-3",sku:"",brand:"vivo",category:"Smartphone",name:"สมาร์ตโฟนตัวอย่าง 256GB",qty:4,price:12990}];data.updated="ตัวอย่าง ไม่ใช่สต็อกจริง";state.selected="demo-1";persist();go("stock");toast("โหลดข้อมูลตัวอย่าง")}if(el.id==="backup"){var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pia-desk-backup.json";a.click();setTimeout(function(){URL.revokeObjectURL(url)},1000)}if(el.id==="reset"&&confirm("ลบสต็อกและข้อมูลที่บันทึกในเบราว์เซอร์นี้ทั้งหมด?")){localStorage.removeItem(K);data=clone(defaults);state.selected="";go("home")}if(el.id==="copy"){var p=picked(),d=Number($("#discount").value||0),c=Number($("#care").value||0),u=Number($("#upfront").value||0),m=Number($("#monthly").value||0),total=Math.max(0,p.price-d)+c+u,txt=[p.name,"ราคาเครื่อง "+fmt(p.price)+" บาท","ส่วนลด "+fmt(d)+" บาท","ประกัน "+fmt(c)+" บาท","จ่ายล่วงหน้า "+fmt(u)+" บาท","ประมาณการชำระ "+fmt(total)+" บาท","รายเดือน "+fmt(m*1.07)+" บาท (รวม VAT โดยประมาณ)","โปรและสิทธิ์ต้องตรวจสอบกับระบบร้าน"].join("\n");navigator.clipboard.writeText(txt).then(function(){toast("คัดลอกใบเสนอราคาแล้ว")},function(){toast("เบราว์เซอร์ไม่อนุญาตให้คัดลอก")})}});
 document.addEventListener("input",function(e){var t=e.target;if(t.id==="search"){var s=t.selectionStart;state.search=t.value;render();var n=$("#search");n.focus();n.setSelectionRange(s,s)}if(["discount","care","upfront","monthly"].includes(t.id))updateQuote();if(t.dataset.k!==undefined){var i=Number(t.dataset.k),col=Number(t.dataset.col),n=Number(t.value);data.kpi[i][col]=Math.max(0,Number.isFinite(n)?n:0);persist();}});
 document.addEventListener("change",function(e){var t=e.target;if(t.id==="brand"){state.brand=t.value;render()}if(t.id==="available"){state.filter=t.checked?"available":"all";render()}if(t.id==="item"){state.selected=t.value;render()}if(t.id==="file"&&t.files&&t.files[0])receiveFile(t.files[0])});
 render();
