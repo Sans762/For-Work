@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200", "Brand_Custom!A1:D500"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -180,12 +180,15 @@
           checked:text(x.Checked_Date),status:text(x.Spec_Status)||"รอข้อมูล",notes:text(x.Notes)
         };
       }
+      const customBrands = rowObjects(a[6]?.values).map(x=>({
+        category:text(x["ประเภทอุปกรณ์"]),brand:text(x["ชื่อแบรนด์"]),synced:true
+      })).filter(x=>["Smartphone","Notebook"].includes(x.category)&&x.brand).slice(0,499);
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
         target: total ? number(total.MonthlyTargetTHB) : null,
         sales: total ? number(total.SalesAtSnapshotTHB) : null,
         salesDate: total ? text(total.SnapshotDate) : "",
-        kpi, sourceLabel, snapshotDate, photoLatest, specs,
+        kpi, sourceLabel, snapshotDate, photoLatest, specs, customBrands,
         syncedAt: new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
       };
     } finally { running = false; }
@@ -244,6 +247,43 @@
     const response=await request(url,{method:"POST",body:JSON.stringify({majorDimension:"ROWS",values})},true);
     return {count:values.length,updatedRange:response.updates?.updatedRange||""};
   }
+
+  function ensureBrand(category,brand){
+    const c=text(category).trim(),b=text(brand).trim();
+    if(!["Smartphone","Notebook"].includes(c))throw Error("หมวดต้องเป็นมือถือหรือโน้ตบุ๊ก");
+    if(!b||b.length>65||/[\r\n\t]/.test(b))throw Error("กรุณาใส่ชื่อแบรนด์ (ไม่เกิน 65 ตัวอักษร)");
+    return {category:c,brand:b};
+  }
+  async function appendBrand(sheetId,category,brand){
+    if(!hasAccess(true))throw Error("กรุณาให้สิทธิ์แก้ไข Google Sheets ก่อน");
+    const entry=ensureBrand(category,brand);
+    const read=await request(apiURL(sheetId,"/values/"+encodeURIComponent("Brand_Custom!A1:D500")), {method:"GET"}, false);
+    const exists=(read.values||[]).slice(1).some(x=>text(x[0])===entry.category&&text(x[1]).toLowerCase()===entry.brand.toLowerCase());
+    if(exists)return {saved:true,duplicate:true};
+    if((read.values||[]).length>=500)throw Error("Brand_Custom เต็มแล้ว");
+    const date=new Date().toISOString().slice(0,10);
+    const url=apiURL(sheetId,"/values/"+encodeURIComponent("Brand_Custom!A1:D500")+":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS");
+    const response=await request(url,{method:"POST",body:JSON.stringify({majorDimension:"ROWS",values:[[entry.category,entry.brand,date,"เพิ่มจาก For Work"]]})},true);
+    return {saved:true,updatedRange:response.updates?.updatedRange||""};
+  }
+  async function appendProduct(sheetId,product){
+    if(!hasAccess(true))throw Error("กรุณาอนุญาตให้แก้ไข Google Sheets ก่อน");
+    const p=product||{},category=text(p.category).trim(),brand=text(p.brand).trim();
+    const name=text(p.name).trim(),sku=text(p.sku).trim();
+    const qty=Number(p.qty),price=Number(p.price);
+    if(!["Smartphone","Notebook"].includes(category))throw Error("กรุณาเลือกหมวดมือถือหรือโน้ตบุ๊ก");
+    if(!brand||brand.length>65||!name||name.length>220)throw Error("กรุณาใส่แบรนด์และชื่อรุ่นให้ครบ");
+    if(!Number.isInteger(qty)||qty<0||qty>100000||!Number.isFinite(price)||price<0||price>100000000)throw Error("จำนวนหรือราคาผิดรูปแบบ");
+    if(sku.length>80||/[\r\n\t]/.test(sku))throw Error("SKU ยาวเกินไปหรือมีตัวอักษรไม่ถูกต้อง");
+    // Read before appending to prevent duplicates and avoid exhausting the existing formula range.
+    const check=await request(apiURL(sheetId,"/values/"+encodeURIComponent("Stock_Input!A1:G1500")), {method:"GET"}, false);
+    const records=(check.values||[]).slice(1).filter(x=>text(x[0]));
+    if(records.length>=1499)throw Error("ชีตสต็อกเต็ม 1,499 รายการ ต้องขยายสูตรก่อนเพิ่ม");
+    if(sku&&records.some(x=>text(x[5]).toLowerCase()===sku.toLowerCase()))throw Error("SKU นี้มีอยู่แล้ว ให้แก้จำนวนที่ Stock_Quick_Update");
+    const url=apiURL(sheetId,"/values/"+encodeURIComponent("Stock_Input!A1:G1500")+":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS");
+    const response=await request(url,{method:"POST",body:JSON.stringify({majorDimension:"ROWS",values:[[name,qty,price,brand,category,sku,""]]})},true);
+    return {saved:true,updatedRange:response.updates?.updatedRange||""};
+  }
   function isClientId(v) { return clientIdOK.test(text(v)); }
-  root.ForWorkGoogle = { signIn, hasAccess, sync, upload, appendPhotoReport, disconnect, getClientId, setClientId, isClientId };
+  root.ForWorkGoogle = { signIn, hasAccess, sync, upload, appendPhotoReport, appendBrand, appendProduct, disconnect, getClientId, setClientId, isClientId };
 })(window);
