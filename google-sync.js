@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -149,12 +149,21 @@
         if (text(row[0]) === "แหล่งข้อมูลปัจจุบัน") sourceLabel = text(row[1]);
         if (text(row[0]).includes("วันที่สต็อกใหม่")) snapshotDate = text(row[1]);
       }
+      const captures=(a[4]?.values||[]).slice(1).filter(row=>text(row[2]).toUpperCase()==="PIA" && text(row[3]).toLowerCase()==="total" && (row[15]===true||text(row[15]).toUpperCase()==="TRUE"));
+      let photoLatest=null;
+      if(captures.length){
+        const row=captures[captures.length-1];
+        const columns=["target","sales","lastMonth","lastYear","forecast","achieve","forecastPct","mom","yoy","targetDay","commission"];
+        const total={category:"Total"};
+        columns.forEach((key,i)=>{total[key]=row[i+4]===undefined||row[i+4]===""?null:number(row[i+4])});
+        photoLatest={reportDate:text(row[1]),capturedAt:text(row[0]),rows:[total],verified:true,googleUploadedAt:text(row[0]),source:"Google Sheets · PIA_Photo_Log"};
+      }
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
         target: total ? number(total.MonthlyTargetTHB) : null,
         sales: total ? number(total.SalesAtSnapshotTHB) : null,
         salesDate: total ? text(total.SnapshotDate) : "",
-        kpi, sourceLabel, snapshotDate,
+        kpi, sourceLabel, snapshotDate, photoLatest,
         syncedAt: new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
       };
     } finally { running = false; }
@@ -203,7 +212,7 @@
           const val=row[key];
           if(val===null||val===""||val===undefined)return "";
           const n=Number(val);
-          if(!Number.isFinite(n)||n<0||n>1000000000)throw new Error("ตัวเลขผิดปกติในหมวด "+category+": "+key);
+          if(!Number.isFinite(n)||n>1000000000||(n<0&&!["mom","yoy"].includes(key)))throw new Error("ตัวเลขผิดปกติในหมวด "+category+": "+key);
           return n;
         }),
         true,"Photo OCR (reviewed)",text(snapshot.note||"")
