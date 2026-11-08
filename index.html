@@ -99,6 +99,30 @@
 .brand-list-head b{font-size:18px}.brand-list-head span{font-size:11px;color:#69757f}
 .brand-sheet-link{display:block;font-size:11px;font-weight:750;padding:8px 12px;background:#f7f8fa;border-top:1px solid #eceef0;text-decoration:none;color:#54626c}
 @media(max-width:720px){.category-tabs{margin-right:-13px;padding-right:13px}.inventory-warning .btn{min-height:45px}}
+
+/* v1.7: mobile-safe actions, no overlapping link buttons */
+.stock-shortcuts{margin:12px 0;background:#fff9e8;border-color:#eedb9f;display:grid;gap:12px}
+.stock-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px;width:100%;min-width:0}
+.stock-actions .btn{display:flex;align-items:center;justify-content:center;min-width:0;min-height:46px;width:100%;white-space:normal;text-align:center;text-decoration:none;line-height:1.35;overflow-wrap:anywhere}
+.stock-more{border-top:1px solid #e8dfc2;padding-top:10px}.stock-more summary{cursor:pointer;font-size:12px;font-weight:750;color:#6c5738}
+.quick-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:stretch;min-width:0}
+.quick-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:42px;text-align:center;text-decoration:none;white-space:normal;line-height:1.35}
+.true-plan-details{background:#f3fbf7;border:1px solid #cae8d6;border-radius:12px;padding:12px;display:grid;gap:6px;overflow-wrap:anywhere}
+.true-plan-details a{font-size:12px;font-weight:700;color:#106b4b}
+.true-quote-warning:not(:empty){background:#fff1ce;border:1px solid #eec775;color:#74541d;padding:10px 12px;border-radius:11px;font-weight:750;font-size:12px}
+@media(max-width:720px){
+ .top{height:auto;min-height:68px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+ .top>div:first-child{min-width:0}.top strong{display:block;font-size:15px;line-height:1.2;max-width:150px}
+ .top>.row{display:flex;gap:7px;align-items:center;flex-wrap:nowrap;min-width:0}
+ .top .tag{max-width:116px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .topimport{display:none}
+ .syncbutton{flex:0 0 auto;min-height:42px;padding:9px 12px}
+ .stock-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .googleactions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .googleactions button{min-width:0;min-height:46px;white-space:normal}
+ .quick-actions .btn{flex:1 1 145px}
+}
+@media(max-width:350px){.stock-actions{grid-template-columns:1fr}.top .tag{max-width:84px}.top strong{font-size:14px}}
 </style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.6 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
 <script src="./xlsx-reader.js"></script>
 <script src="./photo-reader.js"></script>
@@ -107,6 +131,7 @@
 <script src="./specs-ui.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="./google-sync.js"></script>
+<script src="./true-quote.js"></script>
 <script>
 (function(){
 "use strict";
@@ -116,6 +141,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}
 var data=clone(defaults);try{var parsed=JSON.parse(localStorage.getItem(K)||"{}");if(parsed&&typeof parsed==="object")data=Object.assign(data,parsed)}catch(e){}
 var fromQuery=new URLSearchParams(location.search).get("sheet");if(fromQuery&&/^[a-zA-Z0-9_-]{20,100}$/.test(fromQuery)){data.sheetId=fromQuery;try{localStorage.setItem(K,JSON.stringify(data));history.replaceState({}, "",location.pathname+location.hash)}catch(e){}};
 var state={page:"home",type:"ทั้งหมด",brand:"ทั้งหมด",search:"",selected:"",filter:"all",sort:"price_asc",minPrice:"",maxPrice:"",priceRange:"",showCount:100};
+state.trueOfferKey="";state.trueManual=null;
 state.brandFormOpen=false;state.productFormOpen=false;state.productBrand="";state.productCategory="Smartphone";state.catalogType="Smartphone";state.brandSearch="";state.brandAdmin=false;
 var photoRows=Array.isArray(data.photoReport?.rows)?clone(data.photoReport.rows):[];
 var photoPreviewUrl="",photoRawText="",photoBusy=false,photoMessage="",photoWarnings=[],photoChanged=false;
@@ -129,9 +155,18 @@ function toast(m){var t=$("#toast");t.textContent=m;t.classList.remove("hide");c
 function nav(){var html=tabs.map(function(x){return '<button data-page="'+x[0]+'" class="'+(x[0]===state.page?"on":"")+'">'+x[1]+' '+x[2]+"</button>"}).join("");$("#side").innerHTML=html;var mobileTabs=[["home","⌂","หน้าแรก"],["stock","▦","สินค้า"],["brands","◈","แบรนด์"],["menu","☰","เมนู"]];$("#bottom").innerHTML=mobileTabs.map(function(x){var active=x[0]===state.page||(x[0]==="menu"&&["quote","kpi","photo","settings","spec"].includes(state.page));return '<button data-page="'+x[0]+'" class="'+(active?"on":"")+'"><span>'+x[1]+"</span>"+x[2]+"</button>"}).join("");$("#topTitle").textContent=(tabs.find(function(x){return x[0]===state.page})||["","","สเปกสินค้า"])[2];$("#dataState").textContent=isInventoryIncomplete()?"⚠ ในเครื่อง "+data.products.length+" (ไม่ครบ)":data.products.length?"ในเครื่อง • "+data.products.length+" รายการ":"ยังไม่มีสต็อก"}
 function title(a,b,c){return '<div class="head"><div><div class="eyebrow">WORKSPACE / SALES</div><h2 class="h">'+a+'</h2><p class="small">'+b+'</p></div>'+(c?'<span class="tag">'+c+"</span>":"")+"</div>"}
 function stockQuickLinks(){
- if(!data.sheetId)return '<div class="notice" style="margin:12px 0">ต้องบันทึกลิงก์ Google Sheets ในเมนู นำเข้า ก่อน จึงจะใช้ปุ่มแก้สต็อกได้</div>';
+ if(!data.sheetId)return '<div class="notice">กรุณาเชื่อม Google Sheets ในหน้านำเข้าก่อน</div>';
  var base="https://docs.google.com/spreadsheets/d/"+encodeURIComponent(data.sheetId)+"/edit#gid=";
- return '<div class="card" style="margin:12px 0;background:#fff9e8;border-color:#eedb9f"><div class="row" style="justify-content:space-between;align-items:center"><b>✎ แก้สต็อกได้ง่ายใน Google Sheets</b><span class="small">แก้จำนวนด้วย SKU + จำนวนใหม่</span></div><div class="quick-actions" style="margin-top:11px"><a class="btn dark" href="'+base+'501503" target="_blank" rel="noopener">🔎 ค้นหา SKU</a><a class="btn yellowbtn" href="'+base+'501501" target="_blank" rel="noopener">✏ แก้จำนวนสินค้า</a><a class="btn" href="'+base+'501302" target="_blank" rel="noopener">＋ เพิ่มสินค้า</a><a class="btn" href="'+base+'501700" target="_blank" rel="noopener">◈ แยกแบรนด์</a><a class="btn" href="'+base+'501801" target="_blank" rel="noopener">＋ เพิ่มแบรนด์</a><a class="btn" href="'+base+'501502" target="_blank" rel="noopener">▦ สรุปแบรนด์</a><a class="btn" href="'+base+'501601" target="_blank" rel="noopener">◈ เพิ่มสเปกเครื่อง</a></div><div class="small" style="margin-top:8px">แก้ในชีตแล้วกด ⟳ ซิงก์บนเว็บเพื่อดึงยอดใหม่ (ต้องเชื่อม Google OAuth)</div></div>';
+ return '<section class="card stock-shortcuts"><div><b>✎ แก้สต็อกใน Google Sheets</b><div class="small">กรอก SKU และจำนวนคงเหลือใหม่ ไม่ต้องแก้หลายแท็บ</div></div>'+
+ '<div class="stock-actions"><a class="btn dark" href="'+base+'501503" target="_blank" rel="noopener">🔎 ค้นหา SKU</a>'+
+ '<a class="btn yellowbtn" href="'+base+'501501" target="_blank" rel="noopener">✏ แก้จำนวน</a></div>'+
+ '<details class="stock-more"><summary>ทางลัดอื่น ๆ ในชีต</summary><div class="stock-actions">'+
+ '<a class="btn" href="'+base+'501302" target="_blank" rel="noopener">＋ เพิ่มสินค้า</a>'+
+ '<a class="btn" href="'+base+'501700" target="_blank" rel="noopener">◈ แยกแบรนด์</a>'+
+ '<a class="btn" href="'+base+'501801" target="_blank" rel="noopener">＋ เพิ่มแบรนด์</a>'+
+ '<a class="btn" href="'+base+'501502" target="_blank" rel="noopener">▦ สรุปแบรนด์</a>'+
+ '<a class="btn" href="'+base+'501601" target="_blank" rel="noopener">◈ เพิ่มสเปก</a></div></details>'+
+ '<div class="small">แก้สต็อกแล้วกด ⟳ ซิงก์ในเว็บเพื่อดึงยอดใหม่ (ต้องได้รับสิทธิ์ Google OAuth)</div></section>';
 }
 function home(){var all=data.products.reduce(function(n,p){return n+p.qty},0),goal=data.target*.7,rem=Math.max(0,goal-data.sales),diff=(function(){var t=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()),v={};t.forEach(function(x){v[x.type]=x.value});return (Date.UTC(2026,10,30)-Date.UTC(+v.year,+v.month-1,+v.day))/86400000})(),days=Math.max(0,Math.floor(diff)+1),val=data.products.reduce(function(n,p){return n+p.qty*p.price},0);return title("For Work","เริ่มจากเลือกสิ่งที่ต้องการใช้งาน","")+freshnessBanner()+
  '<div class="start-actions"><button class="start-main" data-page="brands"><span>📱</span><b>เลือกแบรนด์</b><small>มือถือ / โน้ตบุ๊ก</small></button><button class="start-main" data-page="stock"><span>🔎</span><b>ค้นหาสินค้า</b><small>ราคา / สต็อก / สเปก</small></button><button class="start-main" data-page="quote"><span>▤</span><b>คิดราคา</b><small>ส่วนลด / ประกัน</small></button></div>'+'<div class="syncbox" style="margin-bottom:14px"><div class="row"><b>Google Sheets</b><span class="small">'+safe(data.syncSource==="google"?"ซิงก์ล่าสุด "+data.updated:"ยังไม่เชื่อมบัญชี Google")+'</span><button class="btn" id="googleSync">⟳ ดึงสต็อก</button><button class="btn" data-page="settings">ตั้งค่า</button></div>'+(data.salesDate?'<div class="small">ยอดขายจากชีตเป็น snapshot ณ '+safe(data.salesDate)+' ไม่ใช่ยอด POS สด</div>':'')+'</div>'+(data.products.length?'':'<div class="card" style="background:#fff9e9;border-color:#f3dd90;margin-bottom:14px"><h3 class="section">เริ่มต้นด้วยการนำเข้าสต็อก</h3><p class="small">Google Sheets เป็นส่วนตัว จึงยังไม่มีข้อมูลในเครื่องนี้</p><button class="btn dark" data-page="settings">＋ นำเข้า Excel จาก Google Sheets</button></div>')+photoSavedCard()+'<div class="cards"><div class="card yellow"><div class="label">ยอดขายเดือนนี้</div><div class="value">'+fmt(data.sales)+' ฿</div><div class="small">บันทึกเองในหน้า ตั้งค่า</div></div><div class="card"><div class="label">เป้าหมาย 70%</div><div class="value">'+fmt(goal)+' ฿</div></div><div class="card"><div class="label">ยอดยังขาด</div><div class="value red">'+fmt(rem)+' ฿</div></div><div class="card"><div class="label">เป้าขั้นต่ำต่อวัน</div><div class="value">'+(days?fmt(Math.ceil(rem/days)):"—")+' ฿</div><div class="small">'+days+' วัน ถึงสิ้นพฤศจิกายน</div></div></div><div class="two"><section class="card"><h3 class="section">ความคืบหน้า</h3><div class="row" style="justify-content:space-between"><b>'+fmt(data.sales)+' / '+fmt(data.target)+' ฿</b><b>'+ (data.target?(data.sales/data.target*100).toFixed(1):"0.0")+'%</b></div><div class="bar" style="margin:12px 0"><div class="fill" style="width:'+Math.min(100,data.target?data.sales/data.target*100:0)+'%"></div></div><div class="notice">ข้อมูลยอดขายไม่ได้ดึงจาก POS ร้านอัตโนมัติ และไม่บวกยอดจากรายการทดลองเข้ายอดจริง</div></section><section class="card"><h3 class="section">สต็อกตามไฟล์ล่าสุด</h3><div class="value">'+fmt(all)+' หน่วย</div><div class="small">ราคาตั้งรวม '+fmt(val)+' ฿</div><div class="report" style="margin-top:15px">'+["Smartphone","Notebook","Accessory","Tablet"].map(function(b){return '<div><div class="minihead">'+safe(window.ForWorkBrandBrowser?.labels[b]||b)+'</div><div class="stat">'+fmt(data.products.filter(function(p){return p.category===b}).reduce(function(s,p){return s+p.qty},0))+' หน่วย</div></div>'}).join("")+'</div><button class="btn dark full" data-page="stock" style="margin-top:15px">ดูสินค้า →</button></section></div>'}
