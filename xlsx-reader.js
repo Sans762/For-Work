@@ -123,7 +123,24 @@
       if (rows.length) { all = all.concat(rows); used.push(sh.name); }
     }
     if (!all.length) throw new Error("ไม่พบตารางสินค้าที่มีคอลัมน์ชื่อสินค้า จำนวน และราคา");
-    return { rows: all, sheets: used };
+    async function getSheet(name) {
+      const found = sheets.find(s => s.name.toLowerCase() === name.toLowerCase());
+      if (!found) return [];
+      const xml = await zip.read(found.path);
+      return xml ? decodeSheet(parseXml(xml), strings) : [];
+    }
+    const targetRows = await getSheet("Sales_Targets");
+    const totalRow = targetRows.find(r => String(r[1] || "").trim().toUpperCase() === "TOTAL");
+    const salesTarget = totalRow ? { target: Number(totalRow[2]) || 0, sales: Number(totalRow[3]) || 0, snapshot: String(totalRow[7] || "") } : null;
+    const kpiRows = await getSheet("Attach_KPI");
+    const kpi = kpiRows.slice(1).filter(r => r[1] && r[2] !== "").map(r => {
+      const group = String(r[0] || ""), name = String(r[1]);
+      const label = group.toLowerCase() === "insurance" ? "ประกัน " + name : group.toLowerCase() === "ufund" ? "Ufund " + name : name;
+      const rate = Number(r[2]); const eligible = Number(r[3]); const count = Number(r[4]);
+      return [label, rate <= 1 ? rate * 100 : rate, Number.isFinite(eligible) ? eligible : 0, Number.isFinite(count) ? count : 0];
+    });
+    return { rows: all, sheets: used, salesTarget, kpi };
+
   }
   root.PIAExcel = { read };
 })(window);
