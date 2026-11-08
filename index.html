@@ -282,6 +282,15 @@ function updateGoogleSnapshot(result){
  if(result.sales!==null)data.sales=result.sales;
  if(result.salesDate)data.salesDate=result.salesDate;
  if(result.kpi&&result.kpi.length)data.kpi=result.kpi;
+ if(result.photoLatest?.verified && (!data.photoReport?.verified || result.photoLatest.capturedAt >= (data.photoReport.capturedAt||""))){
+  data.photoReport=result.photoLatest;
+  photoRows=clone(result.photoLatest.rows);photoDate=result.photoLatest.reportDate;photoChanged=false;
+ }
+ var latest=data.photoReport;
+ if(latest?.verified && latest.rows?.length && latest.reportDate >= (result.salesDate||"")){
+  var total=latest.rows.find(r=>r.category==="Total");
+  if(total && total.target>0 && total.sales>=0){data.target=Number(total.target);data.sales=Number(total.sales);data.salesDate=latest.reportDate;data.salesSource="photo"}
+ }
  state.selected=data.products[0].id;state.type="ทั้งหมด";state.brand="ทั้งหมด";state.search="";
  persist();render();
 }
