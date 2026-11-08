@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200", "Brand_Custom!A1:D500", "True_Promotions!A1:H50", "True_Packages!A1:K100"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:V1200", "Brand_Custom!A1:D500", "True_Promotions!A1:H50", "True_Packages!A1:K100"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -177,7 +177,7 @@
           display:text(x.Display),rear:text(x.Rear_Camera),front:text(x.Front_Camera),
           battery:text(x.Battery),charging:text(x.Charging),os:text(x.OS),
           connectivity:text(x.Connectivity),other:text(x.Other_Spec),source:text(x.Source_URL),
-          checked:text(x.Checked_Date),status:text(x.Spec_Status)||"รอข้อมูล",notes:text(x.Notes)
+          checked:text(x.Checked_Date),status:text(x.Spec_Status)||"รอข้อมูล",notes:text(x.Notes),photo:text(x.Photo_URL),photoSource:text(x.Photo_Source_URL),photoNotes:text(x.Photo_Notes)
         };
       }
       const customBrands = rowObjects(a[6]?.values).map(x=>({
