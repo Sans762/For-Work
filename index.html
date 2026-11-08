@@ -42,7 +42,7 @@
 .spec-mini{font-size:11px;color:#537066;display:inline-block;margin-top:5px;line-height:1.4}
 .spec-btn{margin-top:6px;font-size:11px;padding:6px 10px}
 @media(max-width:620px){.specs-grid{grid-template-columns:1fr}.specs-cell{padding:11px}}
-</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.1 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
+</style></head><body><div class="app"><aside class="side"><div class="logo"><div class="logoicon">▣</div><div><b>For Work</b><small>PIA Desk • Sales Workspace</small></div></div><nav class="nav" id="side"></nav><div class="tip">ผู้ช่วยขายส่วนตัว ไม่ใช่ระบบทางการของ BaNANA / COM7<br>ข้อมูลร้านจริงต้องได้รับอนุญาตก่อนนำเข้า และเก็บเฉพาะในเครื่อง</div></aside><div class="main"><header class="top"><div><strong>For Work · PIA Desk</strong><div class="small" id="topTitle">ภาพรวม</div></div><div class="row"><span class="tag" id="dataState">ไม่มีข้อมูลส่วนตัวบนเว็บ</span><button class="syncbutton" id="quickSync" type="button">⟳ ซิงก์</button><button class="topimport" data-page="settings">＋ นำเข้า</button></div></header><main class="wrap"><div id="warning" class="warn">หน้าเว็บสาธารณะไม่มีสต็อกบริษัท · ใช้ไฟล์ CSV ที่คุณได้รับอนุญาตนำเข้าบนเครื่องของคุณ</div><div id="view"></div><div class="footer">PIA Desk v1.2 · หน่วยมือทดลองส่วนตัว · ไม่ใช่ POS ร้าน</div></main></div></div><nav class="bottom" id="bottom"></nav><div id="toast" class="toast hide" role="status"></div>
 <script src="./xlsx-reader.js"></script>
 <script src="./photo-reader.js"></script>
 <script src="./catalog-ui.js"></script>
@@ -208,6 +208,7 @@ async function receiveFile(file){
      data.snapshotDate=result.salesTarget.snapshot;
    }
    if(Array.isArray(result.kpi)&&result.kpi.length)data.kpi=result.kpi;
+   if(result.specs)data.specs=result.specs;
    data.sourceTabs=result.sheets;
    data.sourceName=file.name;
    data.updated=new Date().toLocaleString("th-TH",{timeZone:"Asia/Bangkok"});
