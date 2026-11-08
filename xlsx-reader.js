@@ -78,17 +78,28 @@
     let start = -1;
     for (let i = 0; i < Math.min(10, table.length); i++) {
       const h = table[i].map(N);
-      if (has(h, ["ProductName", "Name", "โน๊ตบุ๊ค"]) &&
+      if (has(h, ["ProductName", "Name", "โน๊ตบุ๊ค", "ชื่อสินค้า"]) &&
           has(h, ["Quantity", "Number", "จำนวน"]) &&
-          has(h, ["SetPriceTHB", "Set Price", "Price", "ราคาขาย"])) {
+          has(h, ["SetPriceTHB", "Set Price", "Price", "ราคาขาย", "ราคา"])) {
         start = i; break;
       }
     }
     if (start < 0) return [];
     const headers = table[start].map(x => String(x || "").trim());
+    const canonical = h => {
+      const a = N(h);
+      if (a.includes("ชื่อสินค้า")) return "ProductName";
+      if (a.includes("จำนวน")) return "Quantity";
+      if (a.includes("ราคา")) return "SetPriceTHB";
+      if (a.includes("แบรนด์")) return "Brand";
+      if (a.includes("หมวด")) return "Category";
+      if (a.includes("วันที่")) return "SnapshotDate";
+      if (a === "sku" || a.startsWith("sku(")) return "SKU";
+      return h;
+    };
     return table.slice(start + 1).map((r, i) => {
       const obj = {};
-      headers.forEach((name, j) => { if (name) obj[name] = String(r[j] ?? ""); });
+      headers.forEach((name, j) => { if (name) obj[canonical(name)] = String(r[j] ?? ""); });
       if (!obj.RecordID) obj.RecordID = sheetName + ":" + (start + i + 2);
       return obj;
     }).filter(row => Object.values(row).some(v => String(v).trim()));
@@ -113,8 +124,8 @@
       return { name, path };
     });
     if (sheets.length > 100) throw new Error("Workbook มีจำนวนชีตมากเกินไป");
-    const inventory = sheets.find(s => s.name.toLowerCase() === "inventory");
-    const selected = inventory ? [inventory] : sheets;
+    const preferred = sheets.find(s => s.name.toLowerCase() === "stock_view") || sheets.find(s => s.name.toLowerCase() === "inventory");
+    const selected = preferred ? [preferred] : sheets;
     let all = [], used = [];
     for (const sh of selected) {
       const source = await zip.read(sh.path);
