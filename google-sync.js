@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200", "Brand_Custom!A1:D500"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:S1200", "Brand_Custom!A1:D500", "True_Promotions!A1:H50", "True_Packages!A1:K100"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -183,12 +183,26 @@
       const customBrands = rowObjects(a[6]?.values).map(x=>({
         category:text(x["ประเภทอุปกรณ์"]),brand:text(x["ชื่อแบรนด์"]),synced:true
       })).filter(x=>["Smartphone","Notebook"].includes(x.category)&&x.brand).slice(0,499);
+      const truePromos=rowObjects(a[7]?.values).map((x,i)=>({
+        id:"TP-"+(i+2),customerType:text(x.CustomerType),category:text(x.Category),
+        minPrice:number(x.MinDevicePriceTHB),monthly:number(x.MonthlyTHB_ExVAT),
+        discount:number(x.DiscountTHB),upfront:number(x.UpfrontTHB),
+        duration:text(x.PlanDuration),conditions:text(x.Conditions),
+        source:"ร้าน / True_Promotions (ต้องยืนยันสิทธิ์และวันหมดโปร)",
+        verified:false
+      })).filter(x=>x.category&&x.monthly>0);
+      const truePackages=rowObjects(a[8]?.values).map(x=>({
+        id:text(x.PlanKey),name:text(x.PlanName),customerType:text(x.CustomerType),
+        monthly:number(x.MonthlyTHB_ExVAT),data:text(x.InternetData),voice:number(x.VoiceMinutes),
+        wifi:text(x.WiFi),duration:text(x.Commitment),source:text(x.SourceURL),
+        checked:text(x.SourceCheckedDate),notes:text(x.Notes),discount:0,upfront:0
+      })).filter(x=>x.id&&x.monthly>0);
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
         target: total ? number(total.MonthlyTargetTHB) : null,
         sales: total ? number(total.SalesAtSnapshotTHB) : null,
         salesDate: total ? text(total.SnapshotDate) : "",
-        kpi, sourceLabel, snapshotDate, photoLatest, specs, customBrands,
+        kpi, sourceLabel, snapshotDate, photoLatest, specs, customBrands, truePromos, truePackages,
         syncedAt: new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
       };
     } finally { running = false; }
