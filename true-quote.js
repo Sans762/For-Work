@@ -30,7 +30,7 @@ function eligiblePromos(product,rows){
 }
 function options(product,promos,packages){
  return [
-  ...normalizePackages(packages).map(x=>({...x,key:"package:"+x.id,kind:"package",label:x.name+" • "+x.data+" • "+x.monthly+" บาท/เดือน"})),
+  ...(product&&product.category==="Smartphone"?normalizePackages(packages).map(x=>({...x,key:"package:"+x.id,kind:"package",label:x.name+" • "+x.data+" • "+x.monthly+" บาท/เดือน"})):[]),
   ...eligiblePromos(product,promos).map(x=>({...x,key:"promo:"+x.id,kind:"promo",label:x.customerType+" • "+x.monthly+" บ./เดือน • ลดเครื่อง "+x.discount+" บ. (ตรวจสิทธิ์)"}))
  ];
 }
