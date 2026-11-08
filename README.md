@@ -152,3 +152,13 @@ Google Sheets ส่วนตัวมีหน้า `Brand_Hub` และแ�
 - ถ้า OAuth 403 ยังแก้ไม่ได้ ให้เพิ่มแบรนด์/สินค้าใน Brand_Custom / Stock_Input โดยตรงผ่านทางลัดในหน้าแบรนด์
 - เพิ่มสินค้าใน Stock_Input แล้ว Stock_View ดึงข้อมูลอัตโนมัติภายในช่วงสูตร 1,499 รายการ การบันทึกแบรนด์อย่างเดียวไม่สร้างสินค้า/แท็บย่อยใหม่
 - Google Sheets เป็น private, public GitHub Pages ไม่มีสต็อกหรือ OAuth token ของร้าน
+
+## v1.5 — Simple mobile navigation (2026-11-08)
+
+- Mobile bottom navigation has four large buttons: หน้าแรก, สินค้า, แบรนด์, เมนู.
+- Home quick-start buttons: เลือกแบรนด์, ค้นหาสินค้า, คิดราคา.
+- Quote, photo PIA, KPI, and Google setup remain reachable through เมนู; desktop routes remain.
+- After sync, brand list follows Stock_View and Brand_Custom rather than requiring manual duplicate entry. The original 17-brand list is fallback only when no stock is loaded.
+- Per-brand Add Model buttons were replaced with one contextual Add Model control in the selected brand's product listing.
+- Manual Add Brand is an advanced collapsed action, used only when the brand is truly missing from the Sheet.
+- No inventory spreadsheet data was modified by this UI change. Cache bumped for existing PWA installations.
