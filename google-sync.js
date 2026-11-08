@@ -149,14 +149,25 @@
         if (text(row[0]) === "แหล่งข้อมูลปัจจุบัน") sourceLabel = text(row[1]);
         if (text(row[0]).includes("วันที่สต็อกใหม่")) snapshotDate = text(row[1]);
       }
-      const captures=(a[4]?.values||[]).slice(1).filter(row=>text(row[2]).toUpperCase()==="PIA" && text(row[3]).toLowerCase()==="total" && (row[15]===true||text(row[15]).toUpperCase()==="TRUE"));
+      const allPhotos=(a[4]?.values||[]).slice(1).filter(row=>text(row[2]).toUpperCase()==="PIA" && (row[15]===true||text(row[15]).toUpperCase()==="TRUE"));
+      const byCapture=new Map();
+      for(const row of allPhotos){
+        const key=text(row[0])+"|"+text(row[1]);
+        if(!byCapture.has(key))byCapture.set(key,[]);
+        byCapture.get(key).push(row);
+      }
+      const captures=[...byCapture.entries()].filter(([key,rows])=>rows.some(r=>text(r[3]).toLowerCase()==="total"));
+      captures.sort((a,b)=>a[0].localeCompare(b[0]));
       let photoLatest=null;
       if(captures.length){
-        const row=captures[captures.length-1];
-        const columns=["target","sales","lastMonth","lastYear","forecast","achieve","forecastPct","mom","yoy","targetDay","commission"];
-        const total={category:"Total"};
-        columns.forEach((key,i)=>{total[key]=row[i+4]===undefined||row[i+4]===""?null:number(row[i+4])});
-        photoLatest={reportDate:text(row[1]),capturedAt:text(row[0]),rows:[total],verified:true,googleUploadedAt:text(row[0]),source:"Google Sheets · PIA_Photo_Log"};
+        const entries=captures[captures.length-1][1],columns=["target","sales","lastMonth","lastYear","forecast","achieve","forecastPct","mom","yoy","targetDay","commission"];
+        const rows=entries.map(line=>{
+          const result={category:text(line[3])};
+          columns.forEach((key,i)=>{result[key]=line[i+4]===undefined||line[i+4]===""?null:number(line[i+4])});
+          return result;
+        });
+        const last=entries.find(line=>text(line[3]).toLowerCase()==="total");
+        photoLatest={reportDate:text(last[1]),capturedAt:text(last[0]),rows,verified:true,googleUploadedAt:text(last[0]),source:"Google Sheets · PIA_Photo_Log"};
       }
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
@@ -180,7 +191,7 @@
     await writeValues(sheetId, "Start_Here!B5", [[false]], "USER_ENTERED");
     await request(apiURL(sheetId, "/values:batchClear"), {
       method: "POST",
-      body: JSON.stringify({ ranges: ["Stock_Input!A2:G1500"] })
+      body: JSON.stringify({ ranges: ["Stock_Input!A2:G1500", "Stock_Quick_Update!A6:B1500"] })
     }, true);
     const rows = products.map(p => [
       text(p.name), Math.max(0, Math.floor(number(p.qty))),
