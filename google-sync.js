@@ -183,6 +183,36 @@
     await writeValues(sheetId, "Start_Here!B5", [[true]], "USER_ENTERED");
     return { rows: rows.length, units: rows.reduce((n, row) => n + number(row[2]), 0) };
   }
+
+  const PHOTO_FIELDS=["target","sales","lastMonth","lastYear","forecast","achieve","forecastPct","mom","yoy","targetDay","commission"];
+  async function appendPhotoReport(sheetId, snapshot){
+    if(!hasAccess(true))throw new Error("กรุณากดอนุญาตสิทธิ์แก้ไข Google Sheets ก่อน");
+    if(!snapshot||!snapshot.verified||!snapshot.rows||!snapshot.rows.length)
+      throw new Error("กรุณาตรวจสอบตัวเลขในภาพก่อนบันทึก");
+    const date=text(snapshot.reportDate),captured=text(snapshot.capturedAt);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw new Error("กรุณาใส่วันที่รายงาน (YYYY-MM-DD)");
+    if(snapshot.rows.length>20)throw new Error("จำนวนแถวมากผิดปกติ");
+    const ids=new Set();
+    const values=snapshot.rows.map(row=>{
+      const category=text(row.category);
+      if(!category||ids.has(category))throw new Error("พบหมวดสินค้าซ้ำหรือหมวดว่าง");
+      ids.add(category);
+      return [
+        captured,date,"PIA",category,
+        ...PHOTO_FIELDS.map(key=>{
+          const val=row[key];
+          if(val===null||val===""||val===undefined)return "";
+          const n=Number(val);
+          if(!Number.isFinite(n)||n<0||n>1000000000)throw new Error("ตัวเลขผิดปกติในหมวด "+category+": "+key);
+          return n;
+        }),
+        true,"Photo OCR (reviewed)",text(snapshot.note||"")
+      ];
+    });
+    const url=apiURL(sheetId,"/values/"+encodeURIComponent("PIA_Photo_Log!A:R")+":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS");
+    const response=await request(url,{method:"POST",body:JSON.stringify({majorDimension:"ROWS",values})},true);
+    return {count:values.length,updatedRange:response.updates?.updatedRange||""};
+  }
   function isClientId(v) { return clientIdOK.test(text(v)); }
-  root.ForWorkGoogle = { signIn, hasAccess, sync, upload, disconnect, getClientId, setClientId, isClientId };
+  root.ForWorkGoogle = { signIn, hasAccess, sync, upload, appendPhotoReport, disconnect, getClientId, setClientId, isClientId };
 })(window);
