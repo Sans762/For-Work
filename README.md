@@ -104,3 +104,15 @@ Google Sheets `PIA_Home`, `PIA_Search`, `PIA_Calculator`, และ `Start_Here`
 - Web app v0.9 prevents quotes on Demo, service, store supplies or items without positive price; mixed stock uses generic units.
 - Actual POS snapshot date was not supplied; fill Start_Here!B6 when confirmed.
 - Private Google Sheets needs owner-authorized Google OAuth. 403 access_denied cannot be bypassed by public web code.
+
+## v1.1 — แบรนด์แยกอุปกรณ์และแก้สต็อกเร็ว (8 พฤศจิกายน 2569)
+
+- Home และ Products แสดงประเภทอุปกรณ์จากข้อมูลส่วนตัวที่มีอยู่จริง พร้อมจำนวน SKU และจำนวนคงเหลือรวม; เลือกหมวดหรือแบรนด์เพื่อกรองทันที
+- อ่าน 13 หมวดอุปกรณ์ และ 78 แบรนด์จาก Google Sheets `Stock_View`, 1,374 รายการ 4,284 หน่วย ขณะตรวจสอบ
+- แบ่งอุปกรณ์: Smartphone, Notebook, Tablet, Smartwatch, Accessory, Gadget, Network, Gaming, Printer, SIM, Service, Demo, Other, Store Supplies
+- ปุ่มใน Home/Stock/Import เปิดตรงไป `Stock_Find` (ค้นหาชื่อ/แบรนด์/SKU), `Stock_Quick_Update` (กรอก SKU + จำนวนล่าสุด), `Stock_Input` (เพิ่มสินค้าใหม่), `Stock_By_Brand` (สรุปแบรนด์ × ประเภท)
+- `Stock_Quick_Update`: ชื่อสินค้า/จำนวนเดิม/สถานะคำนวณอัตโนมัติ; `Stock_View` แทนที่เฉพาะ Quantity โดย SKU ที่มีสถานะ พร้อมใช้; quantity 0 รองรับของหมด
+- เมื่ออัปโหลด snapshot ใหม่จาก For Work ผ่าน authorized Google API จะเคลียร์การ override เก่าใน `Stock_Quick_Update!A6:B1500` เพื่อป้องกันจำนวนค้างจากสต็อกเก่า
+- คงข้อมูลบริษัทไว้ใน Google Sheets ส่วนตัว; เว็บสาธารณะไม่มี SKU/สต็อกฝังในโค้ด ต้องเชื่อม Google OAuth หรือใช้ Excel import ตามที่บริษัทอนุญาต
+- เพิ่มแท็บ `ถ่ายยอด` สำหรับภาพตาราง PIA: ถ่าย/เลือก JPEG/PNG → OCR ในเบราว์เซอร์ → ตรวจค่าที่อ่านได้ → บันทึก Dashboard หรือส่งแถวตรวจแล้วไป `PIA_Photo_Log` ใน Sheets หลังอนุญาตเขียน ไม่อัปโหลดภาพขึ้น server
+- โหมดอ่านภาพอาจอ่าน OCR ผิดจากการถ่ายจอ จึงต้องตรวจ Target/Sale และค่าทั้งหมดก่อนยืนยัน; UI/OAuth end-to-end บนอุปกรณ์จริงยังไม่ได้ทดสอบกับบัญชีเจ้าของ
