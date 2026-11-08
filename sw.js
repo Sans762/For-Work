@@ -1,5 +1,5 @@
 /* For Work PIA Desk: public shell only; business data stays in localStorage. */
-const CACHE = "for-work-pia-v12";
+const CACHE = "for-work-pia-v13";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./xlsx-reader.js", "./google-sync.js", "./catalog-ui.js", "./photo-reader.js", "./specs-ui.js"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("for-work-pia-")&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
