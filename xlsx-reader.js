@@ -164,7 +164,20 @@
         notes:String(row[18]??"")
       };
     }
-    return { rows: all, sheets: used, salesTarget, kpi, specs };
+    const promoSource=await getSheet("True_Promotions"),packageSource=await getSheet("True_Packages");
+    const truePromos=promoSource.slice(1).map((r,i)=>({
+      id:"TP-"+(i+2),customerType:String(r[0]??""),category:String(r[1]??""),
+      minPrice:Number(r[2]||0),monthly:Number(r[3]||0),discount:Number(r[4]||0),
+      upfront:Number(r[5]||0),duration:String(r[6]??""),conditions:String(r[7]??""),
+      source:"ร้าน / True_Promotions (ต้องยืนยันสิทธิ์และวันหมดโปร)",verified:false
+    })).filter(x=>x.category&&x.monthly>0);
+    const truePackages=packageSource.slice(1).map(r=>({
+      id:String(r[0]??""),name:String(r[1]??""),customerType:String(r[2]??""),
+      monthly:Number(r[3]||0),data:String(r[4]??""),voice:Number(r[5]||0),
+      wifi:String(r[6]??""),duration:String(r[7]??""),source:String(r[8]??""),
+      checked:String(r[9]??""),notes:String(r[10]??""),discount:0,upfront:0
+    })).filter(x=>x.id&&x.monthly>0);
+    return { rows: all, sheets: used, salesTarget, kpi, specs, truePromos, truePackages };
 
   }
   root.PIAExcel = { read };
