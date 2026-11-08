@@ -74,7 +74,7 @@
   }
   function toObjects(table, sheetName) {
     const N = s => String(s || "").toLowerCase().replace(/[\s_-]/g, "");
-    const has = (h, list) => list.some(x => h.includes(N(x)));
+    const has = (h, list) => list.some(x => h.some(col => col === N(x) || col.startsWith(N(x))));
     let start = -1;
     for (let i = 0; i < Math.min(10, table.length); i++) {
       const h = table[i].map(N);
