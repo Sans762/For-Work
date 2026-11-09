@@ -177,7 +177,18 @@
       wifi:String(r[6]??""),duration:String(r[7]??""),source:String(r[8]??""),
       checked:String(r[9]??""),notes:String(r[10]??""),discount:0,upfront:0
     })).filter(x=>x.id&&x.monthly>0);
-    return { rows: all, sheets: used, salesTarget, kpi, specs, truePromos, truePackages };
+    const appleRows=await getSheet("True_Apple_Prebook");
+    const trueApplePrebook=appleRows.slice(1).map(r=>({
+      id:String(r[0]??""),model:String(r[1]??""),campaign:String(r[2]??""),
+      minPrice:r[3]===""||r[3]==null?null:Number(r[3]),target:String(r[4]??""),
+      discount:Number(r[5]||0),
+      advance:r[6]===""||r[6]==null?null:Number(r[6]),
+      advanceRaw:String(r[7]??""),rcLabel:String(r[8]??""),
+      rcMinimum:Number(r[9]||0),contract:Number(r[10]||0),
+      startDate:String(r[11]??""),endDate:String(r[12]??""),
+      imageRef:String(r[13]??""),notes:String(r[14]??"")
+    })).filter(x=>x.id&&["iPad mini","iPad8"].includes(x.model)&&x.discount>0&&x.contract===12);
+    return { rows: all, sheets: used, salesTarget, kpi, specs, truePromos, truePackages, trueApplePrebook };
 
   }
   root.PIAExcel = { read };
