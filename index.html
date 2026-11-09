@@ -576,13 +576,9 @@ async function receiveFile(file){
    }
    if(Array.isArray(result.kpi)&&result.kpi.length)data.kpi=result.kpi;
    if(result.specs)data.specs=result.specs;
- if(result.trueApplePrebook)data.trueApplePrebook=result.trueApplePrebook;
- if(result.truePromos)data.truePromos=result.truePromos;
- if(result.truePackages)data.truePackages=result.truePackages;
    if(result.truePromos)data.truePromos=result.truePromos;
    if(result.truePackages)data.truePackages=result.truePackages;
- if(result.truePromos)data.truePromos=result.truePromos;
- if(result.truePackages)data.truePackages=result.truePackages;
+   if(result.trueApplePrebook)data.trueApplePrebook=result.trueApplePrebook;
  if(result.customBrands){
   const combined=[...(data.customBrands||[]).filter(x=>!x.synced),...result.customBrands];
   const merged=new Map();
@@ -685,6 +681,9 @@ function updateGoogleSnapshot(result){
  data.syncSource="google";data.updated=result.syncedAt;data.sourceName="Google Sheets — Stock_View";
  data.stockSource=result.sourceLabel;data.sourceDate=result.snapshotDate;
  if(result.specs)data.specs=result.specs;
+ if(result.truePromos)data.truePromos=result.truePromos;
+ if(result.truePackages)data.truePackages=result.truePackages;
+ if(result.trueApplePrebook)data.trueApplePrebook=result.trueApplePrebook;
  if(result.target!==null)data.target=result.target;
  if(result.sales!==null)data.sales=result.sales;
  if(result.salesDate)data.salesDate=result.salesDate;
