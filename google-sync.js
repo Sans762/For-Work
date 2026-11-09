@@ -119,7 +119,7 @@
     running = true;
     try {
       const params = new URLSearchParams();
-      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:V1200", "Brand_Custom!A1:D500", "True_Promotions!A1:H50", "True_Packages!A1:K100"].forEach(r => params.append("ranges", r));
+      ["Stock_View!A1:H1500", "Sales_Targets!A1:I12", "Attach_KPI!A1:H25", "Start_Here!A5:B9", "PIA_Photo_Log!A1:R1500", "Specs_Entry!A1:V1200", "Brand_Custom!A1:D500", "True_Promotions!A1:H50", "True_Packages!A1:K100", "True_Apple_Prebook!A1:R100"].forEach(r => params.append("ranges", r));
       params.set("valueRenderOption", "UNFORMATTED_VALUE");
       const response = await request(apiURL(sheetId, "/values:batchGet?" + params.toString()), { method: "GET" }, false);
       const a = response.valueRanges || [];
@@ -197,12 +197,21 @@
         wifi:text(x.WiFi),duration:text(x.Commitment),source:text(x.SourceURL),
         checked:text(x.SourceCheckedDate),notes:text(x.Notes),discount:0,upfront:0
       })).filter(x=>x.id&&x.monthly>0);
+      const trueApplePrebook=rowObjects(a[9]?.values).map(x=>({
+        id:text(x.OfferID),model:text(x.Model_Label),campaign:text(x.Campaign),
+        minPrice:x.RRP_Min_THB===""||x.RRP_Min_THB==null?null:number(x.RRP_Min_THB),
+        target:text(x.Customer_Target),discount:number(x.True_Discount_THB),
+        advance:x.Advance_IncVAT_THB===""||x.Advance_IncVAT_THB==null?null:number(x.Advance_IncVAT_THB),
+        advanceRaw:text(x.Advance_Raw),rcLabel:text(x.RC_Label),rcMinimum:number(x.RC_Min_THB),
+        contract:number(x.Contract_Months),startDate:text(x.Start_Date),endDate:text(x.End_Date),
+        imageRef:text(x.Source_Image),notes:text(x.Verification_Notes)
+      })).filter(x=>x.id&&["iPad mini","iPad8"].includes(x.model)&&x.discount>0&&x.contract===12);
       return {
         products: items, stockQty: items.reduce((sum,p) => sum + p.qty,0),
         target: total ? number(total.MonthlyTargetTHB) : null,
         sales: total ? number(total.SalesAtSnapshotTHB) : null,
         salesDate: total ? text(total.SnapshotDate) : "",
-        kpi, sourceLabel, snapshotDate, photoLatest, specs, customBrands, truePromos, truePackages,
+        kpi, sourceLabel, snapshotDate, photoLatest, specs, customBrands, truePromos, truePackages, trueApplePrebook,
         syncedAt: new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
       };
     } finally { running = false; }
