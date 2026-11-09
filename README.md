@@ -180,3 +180,16 @@ Google Sheets ส่วนตัวมีหน้า `Brand_Hub` และแ�
 - Photo source and manufacturer/spec source are visibly separate; SKU, color and regional versions should still be checked before sale.
 - The True quote screen can now select internet plans from True_Packages, or conditional discounts from True_Promotions after Google Sheets sync or Excel import. Local official MNP plans remain as a public fallback with no automatic phone discount.
 - Mobile sheet stock buttons were refactored into a two-column responsive grid, with additional actions under disclosure so they no longer overlap at narrow widths.
+
+## v1.8 — iPad mini / iPad8 True Prebook (source: two user-supplied campaign images)
+
+- Private Google Sheets tab `True_Apple_Prebook` stores **16** independent offers: iPad mini **11** (Open MKT 6, Existing SharePlan / Renew 1, MNP SharePlan 4), and `iPad8` **5**.
+- Campaign date is **6–10 November 2026** with **12-month** contract. The model label `iPad8` is preserved exactly as shown; DO NOT assume it is iPad 8th generation, iPad 11/A16 or an iPad mini.
+- The iPad mini data includes RRP minimums, customer group, device discount, raw RC labels like `399++`, advance including VAT where actually shown; blank advance remains unknown (not zero), while literal dash is captured separately as `Advance_Raw = "-"` and numeric zero.
+- The `iPad8` table gives discount, upfront VAT-inclusive amount, named RC plan and 12-month contract but **does not provide minimum RRP or retail device price**; no current Stock_View SKU matches these exact promotional models. Thus calculations require a manually confirmed device retail price rather than using an unrelated tablet price.
+- Quote page has two modes: stock item pricing and private iPad prebook. The iPad mode uses `trueApplePrebook` returned from authorized Google sync or workbook import; offers are NOT published in the repo.
+- Device price minus true discount plus the explicitly supplied VAT-inclusive advance plus any manually entered add-on gives indicative day-of-purchase amount; do not add VAT again to upfront. RC is displayed verbatim, since the images do not support calculating a full net monthly bill. If upfront is blank, day-of-purchase total remains unknown until verified.
+- Formula columns P:R in the private Sheet let staff enter a confirmed device price, check price minimum and derive due-on-day; both forms clearly distinguish missing advance.
+- After November 10 the quote module flags the image campaign expired and suppresses a usable sale price until new evidence is supplied; it does not verify True customer eligibility, POS pricing or live stock.
+- Original uploaded source filenames `21273.jpg` and `21272.jpg` are recorded in the private sheet, not shared as publicly cached image assets.
+
